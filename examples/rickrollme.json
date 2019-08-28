@@ -1,0 +1,15 @@
+{
+    "command": "open_webpage",
+    "args": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "run options": {
+        "random chance": 0.0005
+    },
+    "output file": "times_ya_got_rick_rolled.txt",
+    "last run": {
+        "year": 2019,
+        "month": 7,
+        "day": 31,
+        "hour": 16,
+        "minute": 19
+    }
+}
