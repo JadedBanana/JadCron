@@ -5,12 +5,13 @@ import time
 import random
 import shutil
 import datetime
-import webbrowser
+import pynput.mouse as mouse
 from calendar import isleap
+from ast import literal_eval
 from threading import Thread
 
 AUTHOR = 'Jade Godwin'
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 
 DEBUG = False
 
@@ -51,7 +52,7 @@ class command_runner(Thread):
                                 output_temp = os.path.dirname(output_temp)
         output('========================' + today.strftime('%A %Y-%m-%d %H:%M') + '========================',
                self.filename, self.file)
-        print(os.path.basename(filename) + ': Output file {}'.format(self.file))
+        print(os.path.basename(filename) + ': Output file {}'.format(self.file.name))
         self.start()
 
     def run(self):
@@ -282,8 +283,33 @@ class file_operations():
     def overwrite_file(file, filename, args):
         file_operations.append_file(file, filename, args, True)
 
+    @staticmethod
+    def delete_file(file, filename, args):
 
-# Opens a webpage
+        def do_deletion(thing, ignore_output = False):
+            if type(thing) is list:
+                for dir in thing:
+                    do_deletion(dir)
+                return
+            thing = os.path.normpath(thing)
+            try:
+                if not os.path.exists(thing) and not ignore_output:
+                    return output('delete file: File or folder {} does not exist. No deletion done.'.format(thing), filename, file)
+                if os.path.isdir(thing):
+                    shutil.rmtree(thing)
+                    output('delete file: Deleted folder {}.'.format(thing), filename, file)
+                else:
+                    os.remove(thing)
+                    output('delete file: Deleted file {}.'.format(thing), filename, file)
+            except PermissionError:
+                output('delete file: Got permission error while deleting {}!'.format(thing), filename, file)
+
+        if not args or not(type(args) is list or type(args) is str):
+            return output('delete file: Args is invalid! Must be a string or a list containing at least one string!', filename, file)
+        do_deletion(args)
+
+
+# Opens a webpage.
 class open_webpage():
     valid_ints = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
@@ -312,13 +338,95 @@ class open_webpage():
         do_open_page(args)
 
 
-# Miscellaneous commands.
-class misc_commands():
+# Hardware simulation.
+class hardware_simulation():
 
     @staticmethod
-    def do_nothing(file, filename, args):
-        output('do_nothing: Doing nothing.', filename, file)
-        return
+    def simulate_mouse(file, filename, args):
+        method = '''if True:
+        def setpos(x, y):
+            mouse_c = mouse.Controller()
+            mouse_c.position = (x, y)
+        def move(x, y):
+            mouse_c = mouse.Controller()
+            mouse_c.move(x, y)
+        def click(button, amount=1):
+            mouse_c = mouse.Controller()
+            mouse_buttons = [mouse.Button.left, mouse.Button.right, mouse.Button.middle]
+            mouse_c.click(mouse_buttons[button % 3], amount)
+        def press(button):
+            mouse_c = mouse.Controller()
+            mouse_buttons = [mouse.Button.left, mouse.Button.right, mouse.Button.middle]
+            mouse_c.press(mouse_buttons[button % 3])
+        def release(button):
+            mouse_c = mouse.Controller()
+            mouse_buttons = [mouse.Button.left, mouse.Button.right, mouse.Button.middle]
+            mouse_c.release(mouse_buttons[button % 3])
+        def scroll(dx, dy = ""):
+            mouse_c = mouse.Controller()
+            if type(dy) is str:
+                mouse_c.scroll(0, dx)
+            else:
+                mouse_c.scroll(dx, dy)
+        \n'''
+
+        def command_is_valid(argument):
+            if not ('(' in argument and ')' in argument):
+                return 'Argument {} is invalid! Missing parhenthesis!'.format(argument)
+            method_name = argument[:argument.find('(')].lower()
+            arguments = '[' + argument[argument.find('(') + 1: argument.rfind(')')] + ']'
+            valid_methods = {'setpos': [2],
+                             'move': [2],
+                             'click': [2, 1],
+                             'press': [1],
+                             'release': [1],
+                             'scroll': [1, 2]
+            }
+            if method_name in valid_methods:
+                try:
+                    arguments = literal_eval(arguments)
+                    for arg in arguments:
+                        if not type(arg) is int:
+                            return 'Argument {} is invalid! Not all arguments are ints!'.format(argument)
+                    if len(arguments) in valid_methods[method_name]:
+                        return True
+                    return 'Argument {} is invalid! Inappropriate amount of arguments!'.format(argument)
+                except SyntaxError:
+                    return 'Argument {} is invalid! Arguments are not formatted correctly!'.format(argument)
+            else:
+                return 'Argument {} is invalid! {} is not a valid method name!'.format(argument, method_name)
+
+        if not args or not (type(args) is list or type(args) is str):
+            return output('simulate mouse: Args is invalid! Must be a string or a list of strings!', filename, file)
+        elif type(args) is str:
+            command = command_is_valid(args)
+            if command and type(command) is str:
+                return output('simulate mouse: ' + command, filename, file)
+            elif command:
+                exec(method + args[:args.rfind(')') + 1])
+            else:
+                return output('simulate mouse: Some unknown error occurred.', filename, file)
+        else:
+            commands = []
+            for cmd in args:
+                command = None
+                if type(cmd) is str:
+                    command = command_is_valid(cmd)
+                    if command and type(command) is str:
+                        return output('simulate mouse: ' + command, filename, file)
+                    elif command:
+                        commands.append(cmd)
+                    else:
+                        return output('simulate mouse: Some unknown error occurred.', filename, file)
+                else:
+                    return output('simulate mouse: Argument {} is invalid! Must be a string!'.format(cmd), filename, file)
+            for cmd in commands:
+                method+= cmd[:cmd.rfind(')') + 1] + '\n'
+            exec(method)
+
+
+# Miscellaneous commands.
+class misc_commands():
 
     @staticmethod
     def sleep(file, filename, args):
@@ -329,6 +437,11 @@ class misc_commands():
             output('sleep: Slept for {} seconds.'.format(args), filename, file)
         elif file:
             output('sleep: Could not sleep as the argument {} was not a valid number!'.format(args), filename, file)
+        return
+
+    @staticmethod
+    def do_nothing(file, filename, args):
+        output('do_nothing: Doing nothing.', filename, file)
         return
 
 
@@ -749,7 +862,9 @@ if __name__ == '__main__':
                       'create backup': file_operations.create_backup,
                       'append file': file_operations.append_file,
                       'overwrite file': file_operations.overwrite_file,
+                      'delete file': file_operations.delete_file,
                       'open webpage': open_webpage.run,
+                      'simulate mouse': hardware_simulation.simulate_mouse,
                       'sleep': misc_commands.sleep,
                       'do nothing': misc_commands.do_nothing}
     last_minute = -1
@@ -768,7 +883,10 @@ if __name__ == '__main__':
                 commands = current_file['command']
                 args = None
                 if 'args' in current_file:
-                    args = current_file['args'].copy()
+                    if type(current_file['args']) is list or type(current_file['args']) is dict:
+                        args = current_file['args'].copy()
+                    else:
+                        args = current_file['args']
                     args = parse_args(args, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix)
                 if not scheduled_to_run(current_file):
                     continue

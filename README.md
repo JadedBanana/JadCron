@@ -4,9 +4,23 @@ JadCron is a python-based task scheduler made by Jade Godwin for Windows. How it
 
 ---
 
+## Startup
+
+Jadcron is best used when it is run on startup in the background.
+
+1. Press Windows + R to open the "Run" dialog box.
+1. Type `shell:startup` and hit Enter to open the "Startup" folder.
+1. Create a shortcut to either `jadcron.bat` or `jadcron_background.vbs` in this folder.
+  - `jadcron_background.vbs` will have the program run in the background. This is recommended.
+  - `jadcron.bat` will have the console up when running. Always.
+
+Now JadCron will run on startup.
+
+---
+
 ## Config Files
 
-Config files are written in json. Here's an example:
+Config files are written in json and are all stored in the same folder as the program. Here's an example:
 
 ```json
 {
@@ -105,15 +119,18 @@ These kays are really only used by the program and you don't really need to both
 ## Valid Commands
 
 - File Operations
-    - [`"create backup"`](#create-backup)
-    - [`"copy file"`](#copy-file)
-    - [`"append file"`](#append-file)
-    - [`"overwrite file"`](#overwrite-file)
+  - [`"create backup"`](#create-backup)
+  - [`"copy file"`](#copy-file)
+  - [`"append file"`](#append-file)
+  - [`"overwrite file"`](#overwrite-file)
+  - [`"delete file"`](#delete-file)
 - Webpage Operations
-    - [`"open webpage`](#open-webpage)
+  - [`"open webpage`](#open-webpage)
+- Hardware Simulation
+  - [`"simulate mouse"`](#simulate-mouse)
 - Misc.
-    - [`"do nothing"`](#do-nothing)
-    - [`"sleep"`](#sleep)
+  - [`"sleep"`](#sleep)
+  - [`"do nothing"`](#do-nothing)
 
 This is all the commands in their bulleted list.
 
@@ -195,11 +212,11 @@ This is all the commands in their bulleted list.
     ```
     
 - `"append file"`: Appends text to the end of an already existing file.<a name="append-file"></a>
-    - `"args"` for this one should be a list with the following attributes:
-        - `{file_to_write}`: The file to be written to. This is a string. Can use either forward or backward slashes.
-        - `{text_to_write}`: The text to be written in the file. Doesn't matter what kind of data this is, it will always be turned into a string.
-    - The file to write can be a list, in which case multiple files will be written to.
-    - Examples:
+  - `"args"` for this one should be a list with the following attributes:
+    - `{file_to_write}`: The file to be written to. This is a string. Can use either forward or backward slashes.
+    - `{text_to_write}`: The text to be written in the file. Doesn't matter what kind of data this is, it will always be turned into a string.
+  - The file to write can be a list, in which case multiple files will be written to.
+  - Examples:
     
     ```json
     {
@@ -231,11 +248,11 @@ This is all the commands in their bulleted list.
     ```
 
 - `"overwrite file"`: Overwrites a file and writes something new. Exactly like `"append file"` except it deletes the file's original contents before writing.<a name="overwrite-file"></a>
-    - `"args"` for this one should be a list with the following attributes:
-        - `{file_to_write}`: The file to be written to. This is a string. Can use either forward or backward slashes.
-        - `{text_to_write}`: The text to be written in the file. Doesn't matter what kind of data this is, it will always be turned into a string.
-    - The file to write can be a list, in which case multiple files will be written to.
-    - Examples:
+  - `"args"` for this one should be a list with the following attributes:
+    - `{file_to_write}`: The file to be written to. This is a string. Can use either forward or backward slashes.
+    - `{text_to_write}`: The text to be written in the file. Doesn't matter what kind of data this is, it will always be turned into a string.
+  - The file to write can be a list, in which case multiple files will be written to.
+  - Examples:
     
     ```json
     {
@@ -263,6 +280,24 @@ This is all the commands in their bulleted list.
         "run options": {
             "delay mode": "yearly"
         }
+    }
+    ```
+
+- `"delete file"`: Deletes a file or folder.<a name="delete-file"></a>
+  - `"args"` for this one should be either a string or a list representing files/folders to be deleted. Can use either forward or backward slashes.
+  - Examples:
+  
+    ```json
+    {
+        "command": "delete file",
+        "args": ["C:/Users/You/Desktop/unwanted.log", "C:/Users/You/Desktop/unwanted (2).log"
+    }
+    ```
+  
+    ```json
+    {
+        "command": "delete file",
+        "args": "C:/Folder_That_Needs_Deletion"
     }
     ```
 
@@ -295,18 +330,37 @@ This is all the commands in their bulleted list.
     }
     ```
     
-- `"do nothing"`: Does nothing. Literally, that's it.<a name="do-nothing"></a>
-  - `"args"` can be literally anything. Args are not needed to do nothing.
-  - This is more a debug command than anything. You're welcome to use it, but it literally does nothing.
+- `"simulate mouse"`: Simulates the mouse.
+  - `"args"` is a string or a list of strings that represent mouse operations. These strings should be one of the following:
+    - `"setpos(x, y)"`: Move the mouse to position `(x, y)`.
+    - `"move(x, y)"`: Move the mouse `(x, y)` pixels across the screen.
+    - `"click(button, amount=1)"`: Click a mouse button `amount` number of times.
+    - `"press(button)"`: Press a mouse button.
+    - `"release(button)"`: Release an already pressed mouse button.
+    - `"scroll(dy)"`: Scroll the scroll wheel the specified amount. Be aware, these numbers are a lot bigger than you think they are.
+    - `"scroll(dx, dy)"`: Scroll the scroll wheel the specified amount. Be aware, these numbers are a lot bigger than you think they are.
+    - Note that the arguments for every command should be ints.
+      - `button` has three values: 0 for left, 1 for right, and 2 for middle.
   - Example:
-
+  
     ```json
     {
-        "command": "do nothing",
-        "args": null
+        "command": "simulate mouse",
+        "args": [
+            "move(800, 600)",
+            "click(0, 2)",
+            "setpos(500, 0)",
+            "press(0)",
+            "move(0, 80)",
+            "release(0)"
+        ],
+        "run options": {
+            "minute": 0,
+            "hour": "10-14"
+        }
     }
     ```
-
+    
 - `"sleep"`: Pauses the program for a set amount of seconds.<a name="sleep"></a>
   - `"args: {amount_of_seconds}"`
   - This is really only useful if you're running commands sequentially.
@@ -327,5 +381,17 @@ This is all the commands in their bulleted list.
         "run options": {
             "random chance": 0.0005
         }
+    }
+    ```
+    
+- `"do nothing"`: Does nothing. Literally, that's it.<a name="do-nothing"></a>
+  - `"args"` can be literally anything. Args are not needed to do nothing.
+  - This is more a debug command than anything. You're welcome to use it, but it literally does nothing.
+  - Example:
+
+    ```json
+    {
+        "command": "do nothing",
+        "args": null
     }
     ```
