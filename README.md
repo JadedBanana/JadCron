@@ -4,9 +4,14 @@ JadCron is a python-based task scheduler made by Jade Godwin for Windows. How it
 
 ---
 
-## Startup
+## Running JadCron
 
-Jadcron is best used when it is run on startup in the background.
+JadCron is almost ready to go straight out the box, but there is one important thing you have to do first:
+
+1. Go into the "venv" folder and open the file "pyvenv.cfg".
+1. Change the `home` parameter to your python directory.
+
+And you're done! Now it's ready to run. However, if you want the best experience, it's best used when it is run on startup in the background. There are some additional steps to complete before this happens:
 
 1. Press Windows + R to open the "Run" dialog box.
 1. Type `shell:startup` and hit Enter to open the "Startup" folder.
