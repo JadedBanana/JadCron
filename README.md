@@ -4,15 +4,18 @@ JadCron is a python-based task scheduler made by Jade Godwin for Windows. How it
 
 ---
 
-## Startup
+## Running JadCron
 
-Jadcron is best used when it is run on startup in the background.
+JadCron is almost ready to go straight out the box, but there is one important thing you have to do first:
+
+1. Go into the "venv" folder and open the file "pyvenv.cfg".
+1. Change the `home` parameter to your python directory (this requires Python to be installed on your computer, obviously).
+
+And you're done! Now it's ready to run and you can do just that by running either `jadcron.bat` or `jadcron_background.vbs` (they are the same, but `jadcron.bat` shows the console while running). However, if you want the best experience, it's best used when it is run on startup in the background. There are some additional steps to complete before this happens:
 
 1. Press Windows + R to open the "Run" dialog box.
 1. Type `shell:startup` and hit Enter to open the "Startup" folder.
 1. Create a shortcut to either `jadcron.bat` or `jadcron_background.vbs` in this folder.
-  - `jadcron_background.vbs` will have the program run in the background. This is recommended.
-  - `jadcron.bat` will have the console up when running. Always.
 
 Now JadCron will run on startup.
 
@@ -49,7 +52,6 @@ The keys are split into three groups:
 
 But the most important part is the commands and the arguments:
 - [Valid Commands](#Valid-Commands)
-- [Arguments](#Arguments)
 
 ---
 
@@ -100,7 +102,7 @@ There are multiple optional keys that are useful for scheduling:
     - 1 is 100% and 0.05 is 5%. You get the gist.
     - This is great for pranks! Keep in mind, though, that this program runs once a minute, so keep your chances low as to not set off any alarms.
 - `"output file"`: The locale for the output file. If not inluded, it will just be a file with the same name plus ".output.txt" tacked on the end. If not set to a string, it the output file will not be generated.
-- `"args function prefix"`: The prefix for mid-argument functions and variables. Is set to `"?:>"` by default.
+- `"args function prefix"`: The prefix for mid-argument functions and variables. Is set to `"?:>>"` by default.
 
 ---
 
@@ -127,6 +129,7 @@ These kays are really only used by the program and you don't really need to both
 - Webpage Operations
   - [`"open webpage`](#open-webpage)
 - Hardware Simulation
+  - [`"simulate keyboard"`](#simulate-keyboard)
   - [`"simulate mouse"`](#simulate-mouse)
 - Misc.
   - [`"sleep"`](#sleep)
@@ -290,7 +293,7 @@ This is all the commands in their bulleted list.
     ```json
     {
         "command": "delete file",
-        "args": ["C:/Users/You/Desktop/unwanted.log", "C:/Users/You/Desktop/unwanted (2).log"
+        "args": ["C:/Users/You/Desktop/unwanted.log", "C:/Users/You/Desktop/unwanted (2).log"]
     }
     ```
   
@@ -329,6 +332,69 @@ This is all the commands in their bulleted list.
         }
     }
     ```
+    
+- `"simulate keyboard"`: Simulates the keyboard.
+  - `"args"` for this one is a string or a list of strings that represent keyboard operations. These strings should be one of the following:
+    - `"type(message)"`: Types the message in plain text.
+    - `"click(key)"`: Fully presses and releases a key. Best used for things like caps lock and stuff that shouldn't be held down.
+    - `"press(key)"`: Presses a key. Basically, starts holding it down.
+    - `"release(key)"`: Releases a key. Stops holding it down.
+    - `"stroke(keystroke)"` `keystroke` should be a set of `keys` to be executed together separated by `+`.
+    - Most key values speak for themselves, but there are others that might not be as easily pressed:
+      - `"alt"`, `"lalt"`, `"ralt"`: Alt. Generic, left, and right respectively.
+      - `"backspace"`: Backspace.
+      - `"capslock"`, `"caps"`: Caps lock.
+      - `"ctrl"`, `"lctrl"`, `"rctrl"`: Control (Ctrl). Generic, left, and right respectively.
+      - `"delete"`, `"del"`: Delete.
+      - `"down"`: Down arrow.
+      - `"end"`: End.
+      - `"enter"`, `"return"`: Enter/Return.
+      - `"esc"`: Escape (Esc).
+      - `"F1"`, `"F2"`, ... `"F20"`: Function keys. Defined from 1 to 20.
+      - `"home"`: Home.
+      - `"insert"`, `"ins"`: Insert.
+      - `"left"`: Left arrow.
+      - `"menu"`: Menu (button that acts as basically a right click).
+      - `"numlock"`: Num lock.
+      - `"pagedown`: Page down.
+      - `"pageup"`: Page up.
+      - `"pause"`, `"break"`: Pause/Break.
+      - `"prtscr"`: Print screen (PrtScr).
+      - `"right"`: Right arrow.
+      - `"scrolllock"`, `"scrlock"`: Scroll lock.
+      - `"shift"`, `"lshift"`, `"rshift"`: Shift. Generic, left, and right respectively.
+      - `"space"`, `"spc"`: Space.
+      - `"tab"`: Tab.
+      - `"up"`: Up arrow.
+      - `"windows"`, `"lwindows"`, `"rwindows"`: Windows key. Generic, left, and right respectively.
+    - The nice thing about this command is that the messages and keys and keystrokes can just be written in plain text, with or without quotation marks.
+  - Examples:
+  
+  ```json
+  {
+      "command": "simulate keyboard",
+      "args": [
+          "stroke(alt+tab)",
+          "type(AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n)",
+          "stroke(alt+tab)"
+      ],
+      "run options": {
+          "random chance": 0.0005
+      }
+  } 
+  ```
+  
+  ```json
+  {
+      "command": "simulate keyboard",
+      "args": [
+          "press(ctrl)",
+          "click(up)",
+          "click(up)",
+          "release(ctrl)"
+      ]
+  }
+  ```
     
 - `"simulate mouse"`: Simulates the mouse.
   - `"args"` is a string or a list of strings that represent mouse operations. These strings should be one of the following:

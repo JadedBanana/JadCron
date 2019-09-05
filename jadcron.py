@@ -6,14 +6,13 @@ import random
 import shutil
 import datetime
 import pynput.mouse as mouse
+import pynput.keyboard as keyboard
 from calendar import isleap
 from ast import literal_eval
 from threading import Thread
 
-AUTHOR = 'Jade Godwin'
-VERSION = '0.2.1'
-
-DEBUG = False
+__author__ = 'Jade Godwin'
+__version__ = '0.2.2'
 
 today = None
 
@@ -424,6 +423,220 @@ class hardware_simulation():
                 method+= cmd[:cmd.rfind(')') + 1] + '\n'
             exec(method)
 
+    @staticmethod
+    def simulate_keyboard(file, filename, args):
+        key_c = keyboard.Controller()
+        standard_keys = ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/']
+        shifted_keys = {'~': '`', '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0', '_': '-', '+': '=', ':': ';', '"': "'", '<': ',', '>': '.', "?": '/'}
+        sub_keys = {'alt': keyboard.Key.alt,
+                    'lalt': keyboard.Key.alt_l,
+                    'ralt': keyboard.Key.alt_r,
+                    'backspace': keyboard.Key.backspace,
+                    'capslock': keyboard.Key.caps_lock,
+                    'caps': keyboard.Key.caps_lock,
+                    'ctrl': keyboard.Key.ctrl,
+                    'lcrtl': keyboard.Key.ctrl_l,
+                    'rctrl': keyboard.Key.ctrl_r,
+                    'delete': keyboard.Key.delete,
+                    'del': keyboard.Key.delete,
+                    'down': keyboard.Key.down,
+                    'end': keyboard.Key.end,
+                    'enter': keyboard.Key.enter,
+                    'return': keyboard.Key.enter,
+                    'esc': keyboard.Key.esc,
+                    'f1': keyboard.Key.f1,
+                    'f2': keyboard.Key.f2,
+                    'f3': keyboard.Key.f3,
+                    'f4': keyboard.Key.f4,
+                    'f5': keyboard.Key.f5,
+                    'f6': keyboard.Key.f6,
+                    'f7': keyboard.Key.f7,
+                    'f8': keyboard.Key.f8,
+                    'f9': keyboard.Key.f9,
+                    'f10': keyboard.Key.f10,
+                    'f11': keyboard.Key.f11,
+                    'f12': keyboard.Key.f12,
+                    'f13': keyboard.Key.f13,
+                    'f14': keyboard.Key.f14,
+                    'f15': keyboard.Key.f15,
+                    'f16': keyboard.Key.f16,
+                    'f17': keyboard.Key.f17,
+                    'f18': keyboard.Key.f18,
+                    'f19': keyboard.Key.f19,
+                    'f20': keyboard.Key.f20,
+                    'home': keyboard.Key.home,
+                    'insert': keyboard.Key.insert,
+                    'ins': keyboard.Key.insert,
+                    'left': keyboard.Key.left,
+                    'menu': keyboard.Key.menu,
+                    'numlock': keyboard.Key.num_lock,
+                    'pagedown': keyboard.Key.page_down,
+                    'pageup': keyboard.Key.page_up,
+                    'pause': keyboard.Key.pause,
+                    'break': keyboard.Key.pause,
+                    'prtscr': keyboard.Key.print_screen,
+                    'right': keyboard.Key.right,
+                    'scrolllock': keyboard.Key.scroll_lock,
+                    'scrlock': keyboard.Key.scroll_lock,
+                    'shift': keyboard.Key.shift,
+                    'lshift': keyboard.Key.shift_l,
+                    'rshift': keyboard.Key.shift_r,
+                    'space': keyboard.Key.space,
+                    'spc': keyboard.Key.space,
+                    'tab': keyboard.Key.tab,
+                    'up': keyboard.Key.up,
+                    'windows': keyboard.Key.cmd,
+                    'lwindows': keyboard.Key.cmd_l,
+                    'rwindows': keyboard.Key.cmd_r}
+
+        def ktype(message):
+            key_c.type(message)
+
+        def click(key):
+            key = key.replace(' ', '').lower()
+            if key in shifted_keys:
+                key = shifted_keys[key]
+            elif key in sub_keys:
+                key = sub_keys[key]
+            key_c.press(key)
+            key_c.release(key)
+
+        def press(key):
+            key = key.replace(' ', '').lower()
+            if key in shifted_keys:
+                key = shifted_keys[key]
+            elif key in sub_keys:
+                key = sub_keys[key]
+            key_c.press(key)
+
+        def release(key):
+            key = key.replace(' ', '').lower()
+            if key in shifted_keys:
+                key = shifted_keys[key]
+            elif key in sub_keys:
+                key = sub_keys[key]
+            key_c.release(key)
+
+        def stroke(sequence):
+            keys = []
+            now_start_at = 0
+            if '+' in sequence:
+                sequence = sequence.replace(' ', '').lower()
+                for i in range(sequence.count('+')):
+                    end_index = sequence.find('+', now_start_at)
+                    key = sequence[now_start_at:end_index]
+                    if key in shifted_keys:
+                        key = shifted_keys[key]
+                    elif key in sub_keys:
+                        key = sub_keys[key]
+                    keys.append(key)
+                    now_start_at = end_index + 1
+                key = sequence[now_start_at:]
+                if key in shifted_keys:
+                    key = shifted_keys[key]
+                elif key in sub_keys:
+                    key = sub_keys[key]
+                now_start_at = end_index + 1
+                keys.append(key)
+            else:
+                sequence = sequence.replace(' ', '').lower()
+                if sequence in shifted_keys:
+                    sequence = shifted_keys[sequence]
+                elif sequence in sub_keys:
+                    sequence = sub_keys[sequence]
+                keys.append(sequence)
+            for keyz in keys:
+                key_c.press(keyz)
+            for keyz in keys:
+                key_c.release(keyz)
+
+        def test_message(arguments):
+            return ktype
+
+        def test_click(arguments):
+            arguments = arguments.replace(' ', '').lower()
+            if arguments in standard_keys or arguments in shifted_keys or arguments in sub_keys:
+                return click
+            return '"{}" is not a valid key!'.format(arguments)
+
+        def test_press(arguments):
+            arguments = arguments.replace(' ', '').lower()
+            if arguments in standard_keys or arguments in shifted_keys or arguments in sub_keys:
+                return press
+            return '"{}" is not a valid key!'.format(arguments)
+
+        def test_release(arguments):
+            arguments = arguments.replace(' ', '').lower()
+            if arguments in standard_keys or arguments in shifted_keys or arguments in sub_keys:
+                return release
+            return '"{}" is not a valid key!'.format(arguments)
+
+        def test_keystroke(arguments):
+            arguments = arguments.replace(' ', '').lower()
+            if '+' in arguments:
+                now_start_at = 0
+                for i in range(arguments.count('+')):
+                    end_index = arguments.find('+', now_start_at)
+                    key = arguments[now_start_at:end_index]
+                    if not (key in standard_keys or key in shifted_keys or key in sub_keys):
+                        return '"{}" is not a valid keystroke!'.format(arguments)
+                    now_start_at = end_index + 1
+                key = arguments[now_start_at:]
+                if not (key in standard_keys or key in shifted_keys or key in sub_keys):
+                    return '"{}" is not a valid keystroke!'.format(arguments)
+                return stroke
+            else:
+                if arguments in standard_keys or arguments in shifted_keys or arguments in sub_keys:
+                    return stroke
+            return '"{}" is not a valid keystroke!'.format(arguments)
+
+        valid_methods = {'type': test_message, 'click': test_click, 'press': test_press, 'release': test_release, 'stroke': test_keystroke}
+
+        if not args or not (type(args) is list or type(args) is str):
+            return output('simulate keyboard: Args is invalid! Must be a string or a list of strings!', filename, file)
+        elif type(args) is str:
+            if not ('(' in args and ')' in args):
+                return output('simulate keyboard: Argument {} is invalid! Missing parhenthesis!'.format(args), filename, file)
+            params = args[args.find('(') + 1: args.rfind(')')]
+            if ((params[0] == '"' and params[len(params) - 1] == '"') or (params[0] == "'" and params[len(params) - 1] == "'")) and len(params) > 1:
+                params = params[1:len(params) - 1]
+            method_name = args[:args.find('(')].lower()
+            if method_name in valid_methods:
+                command = valid_methods[method_name](params)
+            else:
+                return output('simulate keyboard: Argument {} is invalid! {} is not a valid method name!'.format(args, method_name), filename, file)
+            if command and type(command) is str:
+                return output('simulate keyboard: Argument {} is invalid! '.format(args) + command, filename, file)
+            elif command:
+                command(params)
+            else:
+                return output('simulate keyboard: Some unknown error occurred.', filename, file)
+        else:
+            commands = []
+            for cmd in args:
+                command = None
+                if type(cmd) is str:
+                    if not ('(' in cmd and ')' in cmd):
+                        return output('simulate keyboard: Argument {} is invalid! Missing parhenthesis!'.format(cmd), filename, file)
+                    params = cmd[cmd.find('(') + 1: cmd.rfind(')')]
+                    if ((params[0] == '"' and params[len(params) - 1] == '"') or (params[0] == "'" and params[len(params) - 1] == "'")) and len(params) > 1:
+                        params = params[1:len(params) - 1]
+                    method_name = cmd[:cmd.find('(')].lower()
+                    if method_name in valid_methods:
+                        command = valid_methods[method_name](params)
+                    else:
+                        return output('simulate keyboard: Argument {} is invalid! {} is not a valid method name!'.format(cmd, method_name), filename, file)
+                    if command and type(command) is str:
+                        return output('simulate keyboard: Argument {} is invalid! '.format(cmd) + command, filename, file)
+                    elif command:
+                        commands.append([command, params])
+                    else:
+                        return output('simulate keyboard: Some unknown error occurred.', filename, file)
+                else:
+                    return output('simulate keyboard: Argument {} is invalid! Must be a string!'.format(cmd), filename, file)
+            for cmd in commands:
+                cmd[0](cmd[1])
+
 
 # Miscellaneous commands.
 class misc_commands():
@@ -686,18 +899,8 @@ def scheduled_to_run(current_file):
                 else:
                     time_passed_appropriate = {'yearly': last_run.year < today.year,
                                                'monthly': last_run.month < today.month or last_run.year < today.year,
-                                               'weekly': last_run.isocalendar()[1] < today.isocalendar()[1] or (
-                                                           last_run.year < today.year and not (today.month == 1 and
-                                                                                               datetime.date(today.year,
-                                                                                                             1,
-                                                                                                             1).isocalendar()[
-                                                                                                   2] != 1 and today.day < (
-                                                                                                           9 -
-                                                                                                           datetime.date(
-                                                                                                               today.year,
-                                                                                                               1,
-                                                                                                               1).isocalendar()[
-                                                                                                               2]))),
+                                               'weekly': last_run.isocalendar()[1] < today.isocalendar()[1] or (last_run.year < today.year and not (today.month == 1 and datetime.date(today.year, 1, 1).isocalendar()[2] != 1 and today.day < (9 - datetime.date(today.year, 1, 1).isocalendar()[2]))),
+                                               "daily": last_run.day < today.day or last_run.month < today.month or last_run.year < today.year,
                                                "daily": last_run.day < today.day or last_run.month < today.month or last_run.year < today.year,
                                                "hourly": last_run.hour < today.hour or last_run.day < today.day or last_run.month < today.month or last_run.year < today.year}
                     for time_type in time_passed_appropriate:
@@ -773,13 +976,10 @@ def scheduled_to_run(current_file):
         if not test_numerical_instance(today.minute, current_file['run options']['minute']):
             can_run_based_on_current_datetime = False
 
-    if can_run_based_on_time_interval and not can_run_based_on_current_datetime and last_run and 'run if chance passed' in \
-            current_file['run options'] and current_file['run options']['run if chance passed']:
+    if can_run_based_on_time_interval and not can_run_based_on_current_datetime and last_run and 'run if chance passed' in current_file['run options'] and current_file['run options']['run if chance passed']:
         valid_years = '*' if not 'year' in current_file['run options'] else current_file['run options']['year']
-        valid_months = '*' if not 'month' in current_file['run options'] else replace_month(
-            current_file['run options']['month'])
-        valid_weekdays = '*' if not 'weekday' in current_file['run options'] else replace_weekday(
-            current_file['run options']['weekday'])
+        valid_months = '*' if not 'month' in current_file['run options'] else replace_month(current_file['run options']['month'])
+        valid_weekdays = '*' if not 'weekday' in current_file['run options'] else replace_weekday(current_file['run options']['weekday'])
         valid_days = '*' if not 'day' in current_file['run options'] else current_file['run options']['day']
         valid_hours = '*' if not 'hour' in current_file['run options'] else current_file['run options']['hour']
         valid_minutes = '*' if not 'minute' in current_file['run options'] else current_file['run options']['minute']
@@ -788,18 +988,11 @@ def scheduled_to_run(current_file):
                 for month in range(last_run.month if year == last_run.year else 1,
                                    today.month + 1 if year == today.year else 13):
                     if test_numerical_instance(month, valid_months):
-                        for day in range(last_run.day if year == last_run.year and month == last_run.month else 1,
-                                         today.day + 1 if year == today.year and month == today.month else
-                                         days_per_month[month - 1] + 1):
-                            if test_numerical_instance(day, valid_days) and test_numerical_instance(
-                                    datetime.date(year, month, day).isocalendar()[2] - 1, valid_weekdays):
-                                for hour in range(
-                                        last_run.hour if year == last_run.year and month == last_run.month and day == last_run.day else 0,
-                                        today.hour + 1 if year == today.year and month == today.month and day == today.day else 24):
+                        for day in range(last_run.day if year == last_run.year and month == last_run.month else 1, today.day + 1 if year == today.year and month == today.month else days_per_month[month - 1] + 1):
+                            if test_numerical_instance(day, valid_days) and test_numerical_instance(datetime.date(year, month, day).isocalendar()[2] - 1, valid_weekdays):
+                                for hour in range(last_run.hour if year == last_run.year and month == last_run.month and day == last_run.day else 0, today.hour + 1 if year == today.year and month == today.month and day == today.day else 24):
                                     if test_numerical_instance(hour, valid_hours):
-                                        for minute in range(
-                                                last_run.minute if year == last_run.year and month == last_run.month and day == last_run.day and hour == last_run.hour else 0,
-                                                today.minute + 1 if year == today.year and month == today.month and day == today.day and hour == today.hour else 60):
+                                        for minute in range(last_run.minute if year == last_run.year and month == last_run.month and day == last_run.day and hour == last_run.hour else 0, today.minute + 1 if year == today.year and month == today.month and day == today.day and hour == today.hour else 60):
                                             if test_numerical_instance(minute, valid_minutes):
                                                 return True
         return False
@@ -864,6 +1057,7 @@ if __name__ == '__main__':
                       'overwrite file': file_operations.overwrite_file,
                       'delete file': file_operations.delete_file,
                       'open webpage': open_webpage.run,
+                      'simulate keyboard': hardware_simulation.simulate_keyboard,
                       'simulate mouse': hardware_simulation.simulate_mouse,
                       'sleep': misc_commands.sleep,
                       'do nothing': misc_commands.do_nothing}
