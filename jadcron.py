@@ -653,6 +653,20 @@ class misc_commands():
         return
 
     @staticmethod
+    def command_prompt(file, filename, args):
+        if type(args) is list:
+            for arg in args:
+                reply = os.popen(str(arg)).read()
+                while reply.endswith('\n'):
+                    reply = reply[:len(reply) - 1]
+                output('command prompt: ' + str(arg) + ': ' + reply, filename, file)
+        else:
+            reply = os.popen(str(args)).read()
+            while reply.endswith('\n'):
+                reply = reply[:len(reply) - 1]
+            output('command prompt: ' + str(args) + ': ' + reply, filename, file)
+
+    @staticmethod
     def do_nothing(file, filename, args):
         output('do_nothing: Doing nothing.', filename, file)
         return
@@ -716,8 +730,9 @@ class argument_functions():
                         ['Mon', 'Tues', 'Wednes', 'Thur', 'Fri', 'Sat', 'Sun'],
                         ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                         ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
-                        ['M', 'T', 'W', 'H', 'F', 'S', 'U']]
-                globals()['return_value'] = days[(style - 1) % 6][weekday]''',
+                        ['M', 'T', 'W', 'H', 'F', 'S', 'U'],
+                        ['M', 'T', 'W', 'R', 'F', 'S', 'U']]
+                globals()['return_value'] = days[(style - 1) % 7][weekday]''',
 
         'day': '''def day(digits = 2):
             day = str(today.day)
@@ -752,7 +767,83 @@ class argument_functions():
             if not type(thing) is str:
                 globals()['return_value'] = thing
             else:
-                globals()['return_value'] = eval(thing)'''
+                globals()['return_value'] = eval(thing)''',
+
+        'read': '''def read(file):
+            if not type(thing) is str:
+                globals()['return_value'] = thing
+            else:
+                if os.path.isfile(thing):
+                    try:
+                        with open(thing, 'r') as file:
+                            globals()['return_value'] = file.read()
+                    except PermissionError:
+                        globals()['return_value'] = thing
+                else:
+                    globals()['return_value'] = thing''',
+
+        'exists': '''def exists(file):
+            if type(file) is list:
+                for filz in file:
+                    if not exists(filz):
+                        globals()['return_value'] = False
+                        return False
+                globals()['return_value'] = True
+                return True
+            else:
+                if os.path.exists(str(file)):
+                    globals()['return_value'] = True
+                return True''',
+
+        'sizeof': '''def sizeof(file):
+            if type(file) is list:
+                total_size = 0
+                for filz in file:
+                    total_size+= sizeof(filz)
+                globals()['return_value'] = total_size
+                return total_size
+            else:
+                if os.path.isdir(str(file)):
+                    total_size = 0
+                    for filz in os.listdir(file):
+                        total_size+= sizeof(os.path.join(file, filz))
+                    globals()['return_value'] = total_size
+                    return total_size
+                elif os.path.isfile(str(file)):
+                    globals()['return_value'] = os.path.getsize(str(file))
+                    return globals()['return_value']
+            globals()['return_value'] = 0    
+            return 0''',
+
+        'length': '''def length(strg):
+            try:
+                globals()['return_value'] = len(strg)
+            except TypeError:
+                globals()['return_value'] = len(str(strg))''',
+
+        'lower': '''def lower(strg):
+            globals()['return_value'] = str(strg).lower()''',
+
+        'upper': '''def upper(strg):
+            globals()['return_value'] = str(strg).upper()''',
+
+        'substr': '''def substr(strg, lower_index = 0, upper_index = -1):
+            try:
+                strg = str(strg)
+                lower_index = int(lower_index)
+                upper_index = int(upper_index)
+            except TypeError:
+                globals()['return_value'] = strg
+                return
+            if lower_index < 0:
+                lower_index = 0
+            elif lower_index > len(strg):
+                lower_index = len(strg)
+            if upper_index < 0:
+                upper_index = 0
+            elif upper_index > len(strg):
+                upper_index = len(strg)
+            globals()['return_value'] = strg[lower_index:upper_index]'''
     }
 
     @staticmethod
@@ -761,7 +852,7 @@ class argument_functions():
             last_index = len(argument)
             while argument.rfind(function_prefix, 0, last_index) != -1:
                 last_index = argument.rfind(function_prefix, 0, last_index)
-                cmd = argument[last_index:].replace(' ', '').replace(function_prefix, '')
+                cmd = argument[last_index:].replace(function_prefix, '')
                 try:
                     found_cmd = False
                     for real_cmd in argument_functions.valid_commands:
@@ -785,18 +876,17 @@ class argument_functions():
                             parenthesis_depth += 1
                         elif cmd[index] == ')':
                             parenthesis_depth -= 1
-                    exec(argument_functions.valid_commands[real_cmd] + '\n\n' + cmd[:index + 1], globals())
+                    try:
+                        exec(argument_functions.valid_commands[real_cmd] + '\n\n' + cmd[:index + 1], globals())
+                    except NameError:
+                        exec(argument_functions.valid_commands[real_cmd] + '\n\n' + cmd[:cmd.find('(') + 1] + "'" + cmd[cmd.find('(') + 1:cmd.rfind(')')] + "'" + cmd[cmd.rfind(')'):index + 1], globals())
                     return_value = globals()['return_value']
-                    if argument[:last_index] == '' and argument[
-                                                       last_index + len(function_prefix) + index + 1 + argument[
-                                                                                                       last_index:].count(
-                                                               ' '):] == '':
+                    if argument[:last_index] == '' and argument[last_index + len(function_prefix) + index + 1 + argument[last_index:].count(' '):] == '':
                         return return_value
                     else:
-                        argument = argument[:last_index] + str(return_value) + argument[last_index + len(
-                            function_prefix + cmd[:index + 1]):]
+                        argument = argument[:last_index] + str(return_value) + argument[last_index + len(function_prefix + cmd[:index + 1]):]
                 except IndexError:
-                    None
+                    return argument
         return argument
 
 
@@ -837,7 +927,7 @@ def scheduled_to_run(current_file):
 
     def test_numerical_instance(current, testee):
         try:
-            if not testee:
+            if testee is None:
                 return False
             if type(testee) is int:
                 return current == testee
@@ -867,8 +957,7 @@ def scheduled_to_run(current_file):
         except ValueError:
             return False
 
-    if 'delay mode' in current_file['run options'] and current_file['run options'][
-        'delay mode'] and 'last run' in current_file:
+    if 'delay mode' in current_file['run options'] and current_file['run options']['delay mode'] and 'last run' in current_file:
         delay_mode = current_file['run options']['delay mode'].replace(' ', '').lower()
         if delay_mode == 'once':
             return False
@@ -911,6 +1000,8 @@ def scheduled_to_run(current_file):
                 None
         except KeyError:
             None
+    else:
+        can_run_based_on_time_interval = True
 
     if not can_run_based_on_time_interval:
         return False
@@ -1060,6 +1151,7 @@ if __name__ == '__main__':
                       'simulate keyboard': hardware_simulation.simulate_keyboard,
                       'simulate mouse': hardware_simulation.simulate_mouse,
                       'sleep': misc_commands.sleep,
+                      'command prompt': misc_commands.command_prompt,
                       'do nothing': misc_commands.do_nothing}
     last_minute = -1
 
@@ -1088,15 +1180,10 @@ if __name__ == '__main__':
                 if 'output file' in current_file:
                     output_file = current_file['output file']
                 if type(commands) is list:
-                    command_runner([(valid_commands[command.lower().replace('_', ' ')] if command.lower().replace('_',
-                                                                                                                  ' ') in valid_commands else command.lower().replace(
-                        '_', ' ')) if type(command) is str else str(command) for command in commands], args, file,
-                                   output_file)
+                    command_runner([(valid_commands[command.lower().replace('_', ' ')] if command.lower().replace('_', ' ') in valid_commands else command.lower().replace('_', ' ')) if type(command) is str else str(command) for command in commands], args, file, output_file)
                     write_to_json_file(file, current_file)
                 else:
-                    command_runner(valid_commands[commands.lower().replace('_', ' ')] if commands.lower().replace('_',
-                                                                                                                  ' ') in valid_commands else commands.lower().replace(
-                        '_', ' '), args, file, output_file)
+                    command_runner(valid_commands[commands.lower().replace('_', ' ')] if commands.lower().replace('_', ' ') in valid_commands else commands.lower().replace('_', ' '), args, file, output_file)
                     write_to_json_file(file, current_file)
             except (KeyError, TypeError):
                 continue
