@@ -56,16 +56,59 @@ class command_runner(Thread):
 
     def run(self):
         if type(self.commands) is list:
+            skip_count = []
+            until_skip_count = []
+            skipped_last = False
             if self.args is None or (not type(self.args) is list and not len(self.args) == len(self.commands)):
                 output('Args needs to be an array of equal length to the command array!', self.filename, self.file)
             else:
                 for command in range(len(self.commands)):
                     if type(self.commands[command]) is str:
                         output('{} is not a valid command.'.format(self.commands[command]), self.filename, self.file)
+                        break
                     else:
-                        output('Running command {} with arguments {}.'.format(self.commands[command].__name__, self.args[command]), self.filename, self.file)
-                        self.commands[command](self.file, self.filename, self.args[command])
-                        output('', self.filename, self.file)
+                        command_name = self.commands[command].__name__
+                        if len(skip_count) == 0:
+                            until_skip_count = []
+                        else:
+                            while len(until_skip_count) > 0 and until_skip_count[len(until_skip_count) - 1] == 0:
+                                until_skip_count = until_skip_count[:len(until_skip_count) - 1]
+                            while len(skip_count) > 0 and skip_count[len(skip_count) - 1] == 0:
+                                skip_count = skip_count[:len(skip_count) - 1]
+                            if len(skip_count) == 0:
+                                until_skip_count = []
+                            elif len(skip_count) > len(until_skip_count):
+                                skip_count[len(skip_count) - 1] -= 1
+                                skipped_last = True
+                                if command_name == 'conditional_switch':
+                                    if not type(self.args[command]) is list or len(self.args[command]) != 3:
+                                        output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
+                                    elif not type(self.args[command][1]) is int:
+                                        output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
+                                    elif not type(self.args[command][2]) is int:
+                                        output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
+                                    else:
+                                        output('Skipping command {} and the {} commands beneath it.'.format(command_name, self.args[command][1] + self.args[command][2]), self.filename, self.file)
+                                        skip_count[len(skip_count) - 1] += self.args[command][1] + self.args[command][2]
+                                else:
+                                    output('Skipping command {}.'.format(command_name), self.filename, self.file)
+                                continue
+                            else:
+                                until_skip_count[len(until_skip_count) - 1]-= 1
+                        if skipped_last:
+                            skipped_last = False
+                            output('', self.filename, self.file)
+                        output('Running command {} with arguments {}.'.format(command_name, self.args[command]), self.filename, self.file)
+                        if 'conditional' in command_name:
+                            skips, until_skips = self.commands[command](self.file, self.filename, self.args[command])
+                            skip_count.append(skips)
+                            until_skip_count.append(until_skips)
+                            output('', self.filename, self.file)
+                        else:
+                            self.commands[command](self.file, self.filename, self.args[command])
+                            output('', self.filename, self.file)
+                if skipped_last:
+                    output('', self.filename, self.file)
         else:
             if type(self.commands) is str:
                 output('{} is not a valid command.'.format(self.commands), self.filename, self.file)
@@ -653,6 +696,50 @@ class misc_commands():
         return
 
     @staticmethod
+    def conditional_end(file, filename, args):
+        if args:
+            output('conditional end: {} is equivalent to True! Ending the program:'.format(args), filename, file)
+            return -1, 0
+        else:
+            output('conditional end: {} is equivalent to False. Continuing as normal.'.format(args), filename, file)
+            return 0, 0
+
+    @staticmethod
+    def conditional_skip(file, filename, args):
+        if not type(args) is list or len(args) != 2:
+            output('conditional skip: Args is invalid! Must be a list of length 2!', filename, file)
+            return 0, 0
+        if not type(args[1]) is int:
+            output('conditional skip: Args is invalid! The second value of the list needs to be an integer!', filename, file)
+            return 0, 0
+        if args[0]:
+            output('conditional skip: {} is equivalent to True! Skipping {} commands:'.format(args[0], args[1]), filename, file)
+            return args[1], 0
+        else:
+            output('conditional skip: {} is equivalent to False. Continuing as normal.'.format(args[0]), filename, file)
+            return 0, 0
+
+    @staticmethod
+    def conditional_switch(file, filename, args):
+        if not type(args) is list or (len(args) > 3 or len(args) < 2):
+            output('conditional switch: Args is invalid! Must be a list of length 3!', filename, file)
+            return 0, 0
+        if len(args) < 3:
+            args = args.copy().append(0)
+        if not type(args[1]) is int:
+            output('conditional switch: Args is invalid! The second value of the list needs to be an integer!', filename, file)
+            return 0, 0
+        if len(args) == 3 and not type(args[2]) is int:
+            output('conditional switch: Args is invalid! The third value of the list needs to be an integer!', filename, file)
+            return 0, 0
+        if args[0]:
+            output('conditional switch: {} is equivalent to True! Doing {} commands then skipping {}.'.format(args[0], args[1], args[2]), filename, file)
+            return args[2], args[1]
+        else:
+            output('conditional switch: {} is equivalent to False. Skipping {} commands.'.format(args[0], args[1]), filename, file)
+            return args[1], 0
+
+    @staticmethod
     def command_prompt(file, filename, args):
         if type(args) is list:
             for arg in args:
@@ -1152,7 +1239,10 @@ if __name__ == '__main__':
                       'simulate mouse': hardware_simulation.simulate_mouse,
                       'sleep': misc_commands.sleep,
                       'command prompt': misc_commands.command_prompt,
-                      'do nothing': misc_commands.do_nothing}
+                      'do nothing': misc_commands.do_nothing,
+                      'conditional end': misc_commands.conditional_end,
+                      'conditional skip': misc_commands.conditional_skip,
+                      'conditional switch': misc_commands.conditional_switch}
     last_minute = -1
 
     while True:

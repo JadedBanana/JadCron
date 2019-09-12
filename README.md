@@ -122,7 +122,9 @@ These kays are really only used by the program and you don't really need to both
 
 - General Use:
   - [`"sleep"`](#sleep)
-  - [`"conditional"`](#conditional)
+  - [`"conditional end"`](#conditional-end)
+  - [`"conditional skip"`](#conditional-skip)
+  - [`"conditional switch"`](#conditional-switch)
 - File Operations:
   - [`"create backup"`](#create-backup)
   - [`"copy file"`](#copy-file)
@@ -160,6 +162,36 @@ This is all the commands in their bulleted list.
         "run options": {
             "random chance": 0.0005
         }
+    }
+    ```
+
+- `"conditional end"`: Ends the program if the arguments are true.
+  - `"args"` for this one can be literally anything. Basically, this command acts as an if statement, so anything can trigger it.
+  
+- `"conditional skip"`: Skips a specified number of commands if the arguments are true.
+  - `"args"` for this one needs to be a list of length 2 where the first value is the thing to be tested and the second value is an integer that will tell the program how many commands to skip.
+  
+- `"conditional switch`: Activates one set of commands if the arguments are true, otherwise activates another set. Basically acts as an if/else.
+  - `"args"` for this one needs to be a list of length 2 or 3.
+    - The first value is the thing to be tested. This can be anything.
+    - The second value is the amount of commands following this one that should run if the first value is equivalent to True.
+    - The third value, which is not necessary, is the amount of commands following this one that should run if the first value is equivalent to False.
+  - When skipped, this command will also skip the commands beneath it.
+  - Example:
+  
+    ```json
+    {
+        "command": [
+            "conditional switch",
+            "delete file"
+        ],
+        "args": [
+            [
+                "?:>>exists('school_vpn_file.txt)",
+                1
+            ],
+            "school_vpn_file.txt"
+        ]
     }
     ```
 
@@ -396,31 +428,31 @@ This is all the commands in their bulleted list.
     - The nice thing about this command is that the messages and keys and keystrokes can just be written in plain text, with or without quotation marks.
   - Examples:
   
-  ```json
-  {
-      "command": "simulate keyboard",
-      "args": [
-          "stroke(alt+tab)",
-          "type(AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n)",
-          "stroke(alt+tab)"
-      ],
-      "run options": {
-          "random chance": 0.0005
-      }
-  } 
-  ```
+    ```json
+    {
+        "command": "simulate keyboard",
+        "args": [
+            "stroke(alt+tab)",
+            "type(AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n)",
+            "stroke(alt+tab)"
+        ],
+        "run options": {
+            "random chance": 0.0005
+        }
+    } 
+    ```
   
-  ```json
-  {
-      "command": "simulate keyboard",
-      "args": [
-          "press(ctrl)",
-          "click(up)",
-          "click(up)",
-          "release(ctrl)"
-      ]
-  }
-  ```
+    ```json
+    {
+        "command": "simulate keyboard",
+        "args": [
+            "press(ctrl)",
+            "click(up)",
+            "click(up)",
+            "release(ctrl)"
+        ]
+    }
+    ```
     
 - `"simulate mouse"`: Simulates the mouse.<a name="simulate-mouse"></a>
   - `"args"` is a string or a list of strings that represent mouse operations. These strings should be one of the following:
@@ -459,15 +491,15 @@ This is all the commands in their bulleted list.
   - I'm not responsible if you irreparably screw something up doing this, okay? You use this at your own risk. Hope you know what you're doing.
   - Example:
   
-  ```json
-  {
-      "command": "command prompt",
-      "args": [
-          "echo hello world",
-          "python -v"
-      ]
-  }
-  ```
+    ```json
+    {
+        "command": "command prompt",
+        "args": [
+            "echo hello world",
+            "python -v"
+        ]
+    }
+    ```
     
 - `"do nothing"`: Does nothing. Literally, that's it.<a name="do-nothing"></a>
   - `"args"` can be literally anything. Args are not needed to do nothing.
