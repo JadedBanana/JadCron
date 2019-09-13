@@ -52,6 +52,7 @@ The keys are split into three groups:
 
 But the most important part is the commands and the arguments:
 - [Valid Commands](#Valid-Commands)
+- [Arguments](#Arguments)
 
 ---
 
@@ -117,25 +118,82 @@ These kays are really only used by the program and you don't really need to both
   - `"hour"`: The hour the command was last run.
   - `"minute"`: The minute the command was last run.
 
-
 ## Valid Commands
 
-- File Operations
+- General Use:
+  - [`"sleep"`](#sleep)
+  - [`"conditional end"`](#conditional-end)
+  - [`"conditional skip"`](#conditional-skip)
+  - [`"conditional switch"`](#conditional-switch)
+- File Operations:
   - [`"create backup"`](#create-backup)
   - [`"copy file"`](#copy-file)
   - [`"append file"`](#append-file)
   - [`"overwrite file"`](#overwrite-file)
   - [`"delete file"`](#delete-file)
-- Webpage Operations
+- Webpage Operations:
   - [`"open webpage`](#open-webpage)
-- Hardware Simulation
+- Hardware Simulation:
   - [`"simulate keyboard"`](#simulate-keyboard)
   - [`"simulate mouse"`](#simulate-mouse)
-- Misc.
-  - [`"sleep"`](#sleep)
+- Misc.:
+  - [`"command prompt"`](#command-prompt)
   - [`"do nothing"`](#do-nothing)
 
 This is all the commands in their bulleted list.
+
+- `"sleep"`: Pauses the program for a set amount of seconds.<a name="sleep"></a>
+  - `"args: {amount_of_seconds}"`
+  - This is really only useful if you're running commands sequentially.
+  - Example:
+
+    ```json
+    {
+        "command": [
+            "open webpage",
+            "sleep",
+            "open webpage"
+        ],
+        "args": [
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            7200,
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        ],
+        "run options": {
+            "random chance": 0.0005
+        }
+    }
+    ```
+
+- `"conditional end"`: Ends the program if the arguments are true.
+  - `"args"` for this one can be literally anything. Basically, this command acts as an if statement, so anything can trigger it.
+  
+- `"conditional skip"`: Skips a specified number of commands if the arguments are true.
+  - `"args"` for this one needs to be a list of length 2 where the first value is the thing to be tested and the second value is an integer that will tell the program how many commands to skip.
+  
+- `"conditional switch`: Activates one set of commands if the arguments are true, otherwise activates another set. Basically acts as an if/else.
+  - `"args"` for this one needs to be a list of length 2 or 3.
+    - The first value is the thing to be tested. This can be anything.
+    - The second value is the amount of commands following this one that should run if the first value is equivalent to True.
+    - The third value, which is not necessary, is the amount of commands following this one that should run if the first value is equivalent to False.
+  - When skipped, this command will also skip the commands beneath it.
+  - Example:
+  
+    ```json
+    {
+        "command": [
+            "conditional switch",
+            "delete file"
+        ],
+        "args": [
+            [
+                "?:>>exists('school_vpn_file.txt)",
+                1
+            ],
+            "school_vpn_file.txt"
+        ]
+    }
+    ```
 
 - `"create backup"`: Creates a backup of a file(s) or folder(s).<a name="create-backup"></a>
   - `"args"` for this one should be a list with the following attributes:
@@ -333,7 +391,7 @@ This is all the commands in their bulleted list.
     }
     ```
     
-- `"simulate keyboard"`: Simulates the keyboard.
+- `"simulate keyboard"`: Simulates the keyboard.<a name="simulate-keyboard"></a>
   - `"args"` for this one is a string or a list of strings that represent keyboard operations. These strings should be one of the following:
     - `"type(message)"`: Types the message in plain text.
     - `"click(key)"`: Fully presses and releases a key. Best used for things like caps lock and stuff that shouldn't be held down.
@@ -370,33 +428,33 @@ This is all the commands in their bulleted list.
     - The nice thing about this command is that the messages and keys and keystrokes can just be written in plain text, with or without quotation marks.
   - Examples:
   
-  ```json
-  {
-      "command": "simulate keyboard",
-      "args": [
-          "stroke(alt+tab)",
-          "type(AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n)",
-          "stroke(alt+tab)"
-      ],
-      "run options": {
-          "random chance": 0.0005
-      }
-  } 
-  ```
+    ```json
+    {
+        "command": "simulate keyboard",
+        "args": [
+            "stroke(alt+tab)",
+            "type(AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n)",
+            "stroke(alt+tab)"
+        ],
+        "run options": {
+            "random chance": 0.0005
+        }
+    } 
+    ```
   
-  ```json
-  {
-      "command": "simulate keyboard",
-      "args": [
-          "press(ctrl)",
-          "click(up)",
-          "click(up)",
-          "release(ctrl)"
-      ]
-  }
-  ```
+    ```json
+    {
+        "command": "simulate keyboard",
+        "args": [
+            "press(ctrl)",
+            "click(up)",
+            "click(up)",
+            "release(ctrl)"
+        ]
+    }
+    ```
     
-- `"simulate mouse"`: Simulates the mouse.
+- `"simulate mouse"`: Simulates the mouse.<a name="simulate-mouse"></a>
   - `"args"` is a string or a list of strings that represent mouse operations. These strings should be one of the following:
     - `"setpos(x, y)"`: Move the mouse to position `(x, y)`.
     - `"move(x, y)"`: Move the mouse `(x, y)` pixels across the screen.
@@ -427,26 +485,19 @@ This is all the commands in their bulleted list.
     }
     ```
     
-- `"sleep"`: Pauses the program for a set amount of seconds.<a name="sleep"></a>
-  - `"args: {amount_of_seconds}"`
-  - This is really only useful if you're running commands sequentially.
+- `"command prompt"`: Runs a specified command(s) in command prompt. Good for when this program can't cover your needs so you can write your own.
+  - `"args"` for this one is a string or a list of strings that will be executed in command prompt.
+  - This one is limited only by your programming ability, so knock yourself out.
+  - I'm not responsible if you irreparably screw something up doing this, okay? You use this at your own risk. Hope you know what you're doing.
   - Example:
-
+  
     ```json
     {
-        "command": [
-            "open webpage",
-            "sleep",
-            "open webpage"
-        ],
+        "command": "command prompt",
         "args": [
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-            7200,
-            "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-        ],
-        "run options": {
-            "random chance": 0.0005
-        }
+            "echo hello world",
+            "python -v"
+        ]
     }
     ```
     
@@ -462,3 +513,39 @@ This is all the commands in their bulleted list.
     }
     ```
 
+---
+
+## Arguments
+
+Arguments are the things in the `"args"` parameter in the config files. Arguments are usually ints, strings, booleans, or lists, like so:
+
+```json
+{
+    "args": 18,
+    "args": true,
+    "args": "click(1)",
+    "args": ["C:/Windows", 4]
+}
+```
+
+Arguments are pretty much the meat and potatoes of the program and actually have some functionality within them: argument functions. You can actually embed a little function inside your argument that will change what the argument says depending on the value of the function. The currently implemented functions are as follows:
+
+- General Use:
+  - `"?:>>eval(thing)"`: Performs little operations embedded in the commands, such as addition, subtraction, division, etc.
+  - `"?:>>length(str)"`: Returns the length of a string/list/dict.
+- Date/Time:
+  - `"?:>>year(digits = 4)"`: Returns the current year. Put an int for the amount of digits, defaults to 4.
+  - `"?:>>month(style = 0)"`: Returns the current month. Style set to 0 or 1 will return the numerical value (0 ensuring all months are two digits) and 2 and 3 will return the month's name (styled like January and Jan, respectively).
+  - `"?:>>week(digits = 2)"`: Returns the current year. Put an int for the amount of digits, defaults to 2. If the digits is less than the length of the week, then it will just return that week with the normal amount of digits.
+  - `"?:>>weekday(style = 0)"`: Returns the current month. Style set to 0 will return the numerical value (0 being Monday, 6 being Sunday) and 1 through 7 will return the weekday's name (styled like Thursday, Thurs, Thur, Thu, Th, H and R respectively).
+  - `"?:>>day(digits = 2)"`: Returns the current year. Put an int for the amount of digits, defaults to 2. If the digits is less than the length of the day, then it will just return that day with the normal amount of digits.
+  - `"?:>>hour(digits = 2, military = true)"`: Returns the current hour. Put an int for the amount of digits, defaults to 2. If the digits is less than the length of the hour, then it will just return that hour with the normal amount of digits. Will return 24-hour format by default unless told otherwise.
+  - `"?:>>minute(digits = 2)"`: Returns the current minute. Put an int for the amount of digits, defaults to 2. If the digits is less than the length of the minute, then it will just return that minute with the normal amount of digits.
+- File-based:
+  - `"?:>>read(file)"`: Reads a text file and returns the text within. If the file doesn't exist, it'll just return this supposed file's name.
+  - `"?:>>exists(file)"`: Sees if a file or folder exists. Returns a boolean, True or False.
+  - `"?:>>sizeof(file)"`: Returns the size of a file or folder. Measured in bytes.
+- String operations:
+  - `"?:>>lower(string)"`: Returns the specified string in lower case.
+  - `"?:>>upper(string)"`: Returns the specified string in upper case.
+  - `"?:>>substr(string, lower_index, upper_index = -1)"`: Returns the substring of the string from `lower_index` to `upper_index`.
