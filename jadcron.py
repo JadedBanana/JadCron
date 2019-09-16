@@ -3,6 +3,7 @@ import os
 import json
 import time
 import random
+import psutil
 import shutil
 import datetime
 import pynput.mouse as mouse
@@ -350,6 +351,80 @@ class file_operations():
             return output('delete file: Args is invalid! Must be a string or a list containing at least one string!', filename, file)
         do_deletion(args)
 
+
+# Process operations.
+class process_operations():
+
+    @staticmethod
+    def kill_process(file, filename, args):
+        processes = process_operations.get_processes(args)
+        if type(args) is list:
+            for proc in args:
+                kill_process(file, filename, proc)
+        if len(processes) == 0:
+            output('kill process: Could not find process {}!'.format(args), filename, file)
+        try:
+            for proc in processes:
+                proc.kill()
+                output('kill process: Killed {} (pid: {}).'.format(proc.name(), proc.pid), filename, file)
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, TypeError, AttributeError):
+            pass
+        except psutil.AccessDenied:
+            output('kill process: Could not kill process {} (pid: {})! Permission denied!'.format(proc.name(), proc.pid), filename, file)
+
+
+    @staticmethod
+    def suspend_process(file, filename, args):
+        processes = process_operations.get_processes(args)
+        if type(args) is list:
+            for proc in args:
+                suspend_process(file, filename, proc)
+        if len(processes) == 0:
+            output('suspend process: Could not find process {}!'.format(args), filename, file)
+        try:
+            for proc in processes:
+                proc.suspend()
+                output('suspend process: Suspended {} (pid: {}).'.format(proc.name(), proc.pid), filename, file)
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, TypeError, AttributeError):
+            pass
+        except psutil.AccessDenied:
+            output('suspend process: Could not suspend process {} (pid: {})! Permission denied!'.format(proc.name(), proc.pid), filename, file)
+
+    @staticmethod
+    def resume_process(file, filename, args):
+        processes = process_operations.get_processes(args)
+        if type(args) is list:
+            for proc in args:
+                resume_process(file, filename, proc)
+        if len(processes) == 0:
+            output('resume process: Could not find process {}!'.format(args), filename, file)
+        try:
+            for proc in processes:
+                proc.kill()
+                output('resume process: Resumed {} (pid: {}).'.format(proc.name(), proc.pid), filename, file)
+        except (psutil.NoSuchProcess, psutil.ZombieProcess, TypeError, AttributeError):
+            pass
+        except psutil.AccessDenied:
+            output('resume process: Could not resume process {} (pid: {})! Permission denied!'.format(proc.name(), proc.pid), filename, file)
+
+    @staticmethod
+    def get_processes(args):
+        matching_processes = []
+        try:
+            args = int(args)
+        except ValueError:
+            args = str(args)
+        for proc in psutil.process_iter():
+            try:
+                if type(args) is int:
+                    if args == proc.pid:
+                        matching_processes.append(proc)
+                else:
+                    if args.lower() in proc.name().lower():
+                        matching_processes.append(proc)
+            except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied, TypeError, AttributeError):
+                pass
+        return matching_processes
 
 # Opens a webpage.
 class open_webpage():
@@ -930,7 +1005,70 @@ class argument_functions():
                 upper_index = 0
             elif upper_index > len(strg):
                 upper_index = len(strg)
-            globals()['return_value'] = strg[lower_index:upper_index]'''
+            globals()['return_value'] = strg[lower_index:upper_index]''',
+
+        'running': '''def running(process_name):
+            globals()['return_value'] = False
+            if not type(process_name) is str:
+                process_name = str(process_name)
+            for proc in psutil.process_iter():
+                try:
+                    if process_name.lower() in proc.name().lower():
+                        globals()['return_value'] = proc.isRunning()
+                        return
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass''',
+
+        'running2': '''def running2(pid):
+            globals()['return_value'] = False
+            try:
+                pid = int(pid)
+            except ValueError:
+                return
+            for proc in psutil.process_iter():
+                try:
+                    if pid == proc.pid:
+                        globals()['return_value'] = proc.isRunning()
+                        return
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass''',
+
+        'pid': '''def pid(process_name):
+            globals()['return_value'] = -1
+            if not type(process_name) is str:
+                process_name = str(process_name)
+            for proc in psutil.process_iter():
+                try:
+                    if process_name.lower() in proc.name().lower():
+                        globals()['return_value'] = proc.pid
+                        return
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass''',
+
+        'processname': '''def processname(pid):
+            globals()['return_value'] = None
+            try:
+                pid = int(pid)
+            except ValueError:
+                return
+            for proc in psutil.process_iter():
+                try:
+                    if pid == proc.pid:
+                        globals()['return_value'] = proc.name()
+                        return
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass''',
+
+        'countinstances': '''def countinstances(process_name):
+            globals()['return_value'] = 0
+            if not type(process_name) is str:
+                process_name = str(process_name)
+            for proc in psutil.process_iter():
+                try:
+                    if process_name.lower() in proc.name().lower():
+                        globals()['return_value'] += 1
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass'''
     }
 
     @staticmethod
@@ -1242,7 +1380,10 @@ if __name__ == '__main__':
                       'do nothing': misc_commands.do_nothing,
                       'conditional end': misc_commands.conditional_end,
                       'conditional skip': misc_commands.conditional_skip,
-                      'conditional switch': misc_commands.conditional_switch}
+                      'conditional switch': misc_commands.conditional_switch,
+                      'kill process': process_operations.kill_process,
+                      'suspend process': process_operations.suspend_process,
+                      'resume process': process_operations.resume_process}
     last_minute = -1
 
     while True:

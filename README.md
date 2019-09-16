@@ -131,6 +131,10 @@ These kays are really only used by the program and you don't really need to both
   - [`"append file"`](#append-file)
   - [`"overwrite file"`](#overwrite-file)
   - [`"delete file"`](#delete-file)
+- Process Operations:
+  - [`"kill process"`](#kill-process)
+  - [`"suspend process"`](#suspend-process)
+  - [`"resume process"`](#resume-process)
 - Webpage Operations:
   - [`"open webpage`](#open-webpage)
 - Hardware Simulation:
@@ -165,13 +169,13 @@ This is all the commands in their bulleted list.
     }
     ```
 
-- `"conditional end"`: Ends the program if the arguments are true.
+- `"conditional end"`: Ends the program if the arguments are true.<a name="conditional-end"></a>
   - `"args"` for this one can be literally anything. Basically, this command acts as an if statement, so anything can trigger it.
   
-- `"conditional skip"`: Skips a specified number of commands if the arguments are true.
+- `"conditional skip"`: Skips a specified number of commands if the arguments are true.<a name="conditional-skip"></a>
   - `"args"` for this one needs to be a list of length 2 where the first value is the thing to be tested and the second value is an integer that will tell the program how many commands to skip.
   
-- `"conditional switch`: Activates one set of commands if the arguments are true, otherwise activates another set. Basically acts as an if/else.
+- `"conditional switch`: Activates one set of commands if the arguments are true, otherwise activates another set. Basically acts as an if/else.<a name="conditional-switch"></a>
   - `"args"` for this one needs to be a list of length 2 or 3.
     - The first value is the thing to be tested. This can be anything.
     - The second value is the amount of commands following this one that should run if the first value is equivalent to True.
@@ -362,6 +366,58 @@ This is all the commands in their bulleted list.
     }
     ```
 
+- `"kill process"`: Kills a process by its name or PID.<a name="suspend-file"></a>
+  - `"args"` for this one should be a list of ints/strings or an int/string.
+    - Giving an integer will have it search for the matching PID.
+    - Giving a string will have it search for any programs matching the name given.
+  - If the process does not exist, nothing will happen.
+  - Example:
+  
+  ```json
+  {
+      "command": "kill process",
+      "args": "iexplore.exe"
+  }
+  ```
+
+- `"suspend process"`: Suspends a process by its name or PID.<a name="suspend-file"></a>
+  - `"args"` for this one should be a list of ints/strings or an int/string.
+    - Giving an integer will have it search for the matching PID.
+    - Giving a string will have it search for any programs matching the name given.
+  - If the process does not exist, nothing will happen.
+  - Example:
+  
+  ```json
+  {
+      "command": "suspend process",
+      "args": "minecraft.exe",
+      "run options": {
+          "weekday": "0-4",
+          "hour": 23,
+          "minute": 30
+      }
+  }
+  ```
+
+- `"resume process"`: Resumes a suspended process by its name or PID.<a name="suspend-file"></a>
+  - `"args"` for this one should be a list of ints/strings or an int/string.
+    - Giving an integer will have it search for the matching PID.
+    - Giving a string will have it search for any programs matching the name given.
+  - If the process does not exist, nothing will happen.
+  - Example:
+  
+  ```json
+  {
+      "command": "resume process",
+      "args": "minecraft.exe",
+      "run options": {
+          "weekday": "1-5",
+          "hour": 10,
+          "minute": 15
+      }
+  }
+  ```
+
 - `"open webpage"`: Opens a webpage.<a name="open-webpage"></a>
   - `"args"` for this one should be either a string representing the URL of a webpage or a list of strings representing webpages.
   - If the URL doesn't start with `http://`, `https://`, `localhost:`, or a number, the program will automatically make it start with `http://`.
@@ -549,3 +605,9 @@ Arguments are pretty much the meat and potatoes of the program and actually have
   - `"?:>>lower(string)"`: Returns the specified string in lower case.
   - `"?:>>upper(string)"`: Returns the specified string in upper case.
   - `"?:>>substr(string, lower_index, upper_index = -1)"`: Returns the substring of the string from `lower_index` to `upper_index`.
+- Processes:
+  - `"?:>>running(process_name)"`: Returns a boolean value after seeing if the program in question is running or not. Identified by name.
+  - `"?:>>running2(pid)"`: Returns a boolean value after seeing if the program in question is running or not. Identified by PID.
+  - `"?:>>pid(process_name)"`: Returns the first PID of the process with the given PID. Returns None if not found.
+  - `"?:>>processname(pid)"`: Returns the name of the process with the given PID. Returns None if not found.
+  - `"?:>>countinstances(process_name)"`: Returns an int value representing how many instances the program is running.
