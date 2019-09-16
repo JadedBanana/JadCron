@@ -427,28 +427,28 @@ class process_operations():
         return matching_processes
 
 # Opens a webpage.
-class open_webpage():
+class web_commands():
     valid_ints = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
     @staticmethod
-    def run(file, filename, args):
+    def open_webpage(file, filename, args):
 
         def do_open_page(site):
             if not type(site) is str:
                 if type(site) is list:
                     for sitez in site:
                         do_open_page(sitez)
+                    return
                 return output('open webpage: {} is not a string and thus cannot be a valid URL!'.format(site), filename,
                               file)
             else:
-                if not (args.startswith('http://') or args.startswith('https://') or args.startswith('localhost:') or
-                        site[0] in open_webpage.valid_ints):
+                if not (site.startswith('http://') or site.startswith('https://') or site.startswith('localhost:') or
+                        site[0] in web_commands.valid_ints):
                     output(
-                        'open webpage: Webpage {} does not start with http://, hhtps://, localhost:, or a number. Adding http:// to the beginning of the URL.',
+                        'open webpage: Webpage {} does not start with http://, hhtps://, localhost:, or a number. Adding http:// to the beginning of the URL.'.format(site),
                         filename, file)
                     site = 'http://' + site
             os.system('start \"\" ' + site)
-            output('open webpage: Webpage ' + args + ' opened.', filename, file)
 
         if not args:
             return output('open webpage: Command cannot run without arguments!', filename, file)
@@ -1372,7 +1372,7 @@ if __name__ == '__main__':
                       'append file': file_operations.append_file,
                       'overwrite file': file_operations.overwrite_file,
                       'delete file': file_operations.delete_file,
-                      'open webpage': open_webpage.run,
+                      'open webpage': web_commands.open_webpage,
                       'simulate keyboard': hardware_simulation.simulate_keyboard,
                       'simulate mouse': hardware_simulation.simulate_mouse,
                       'sleep': misc_commands.sleep,
