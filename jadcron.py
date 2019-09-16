@@ -6,8 +6,7 @@ import random
 import psutil
 import shutil
 import datetime
-import pynput.mouse as mouse
-import pynput.keyboard as keyboard
+import pyautogui
 from calendar import isleap
 from ast import literal_eval
 from threading import Thread
@@ -466,29 +465,25 @@ class hardware_simulation():
     def simulate_mouse(file, filename, args):
         method = '''if True:
         def setpos(x, y):
-            mouse_c = mouse.Controller()
-            mouse_c.position = (x, y)
+            pyautogui.moveTo(x, y)
         def move(x, y):
-            mouse_c = mouse.Controller()
-            mouse_c.move(x, y)
+            pyautogui.move(x, y)
         def click(button, amount=1):
-            mouse_c = mouse.Controller()
-            mouse_buttons = [mouse.Button.left, mouse.Button.right, mouse.Button.middle]
-            mouse_c.click(mouse_buttons[button % 3], amount)
+            mouse_buttons = ['left', 'right', 'middle']
+            for i in range(amount):
+                pyautogui.click(button=mouse_buttons[button % 3])
         def press(button):
-            mouse_c = mouse.Controller()
-            mouse_buttons = [mouse.Button.left, mouse.Button.right, mouse.Button.middle]
-            mouse_c.press(mouse_buttons[button % 3])
+            mouse_buttons = ['left', 'right', 'middle']
+            pyautogui.mouseDown(button=mouse_buttons[button % 3])
         def release(button):
-            mouse_c = mouse.Controller()
-            mouse_buttons = [mouse.Button.left, mouse.Button.right, mouse.Button.middle]
-            mouse_c.release(mouse_buttons[button % 3])
+            mouse_buttons = ['left', 'right', 'middle']
+            pyautogui.mouseUp(button=mouse_buttons[button % 3])
         def scroll(dx, dy = ""):
-            mouse_c = mouse.Controller()
             if type(dy) is str:
-                mouse_c.scroll(0, dx)
+                pyautogui.scroll(dx)
             else:
-                mouse_c.scroll(dx, dy)
+                pyautogui.scroll(dy)
+                pyautogui.hscroll(dx)
         \n'''
 
         def command_is_valid(argument):
@@ -547,72 +542,95 @@ class hardware_simulation():
 
     @staticmethod
     def simulate_keyboard(file, filename, args):
-        key_c = keyboard.Controller()
         standard_keys = ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/']
         shifted_keys = {'~': '`', '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0', '_': '-', '+': '=', ':': ';', '"': "'", '<': ',', '>': '.', "?": '/'}
-        sub_keys = {'alt': keyboard.Key.alt,
-                    'lalt': keyboard.Key.alt_l,
-                    'ralt': keyboard.Key.alt_r,
-                    'backspace': keyboard.Key.backspace,
-                    'capslock': keyboard.Key.caps_lock,
-                    'caps': keyboard.Key.caps_lock,
-                    'ctrl': keyboard.Key.ctrl,
-                    'lcrtl': keyboard.Key.ctrl_l,
-                    'rctrl': keyboard.Key.ctrl_r,
-                    'delete': keyboard.Key.delete,
-                    'del': keyboard.Key.delete,
-                    'down': keyboard.Key.down,
-                    'end': keyboard.Key.end,
-                    'enter': keyboard.Key.enter,
-                    'return': keyboard.Key.enter,
-                    'esc': keyboard.Key.esc,
-                    'f1': keyboard.Key.f1,
-                    'f2': keyboard.Key.f2,
-                    'f3': keyboard.Key.f3,
-                    'f4': keyboard.Key.f4,
-                    'f5': keyboard.Key.f5,
-                    'f6': keyboard.Key.f6,
-                    'f7': keyboard.Key.f7,
-                    'f8': keyboard.Key.f8,
-                    'f9': keyboard.Key.f9,
-                    'f10': keyboard.Key.f10,
-                    'f11': keyboard.Key.f11,
-                    'f12': keyboard.Key.f12,
-                    'f13': keyboard.Key.f13,
-                    'f14': keyboard.Key.f14,
-                    'f15': keyboard.Key.f15,
-                    'f16': keyboard.Key.f16,
-                    'f17': keyboard.Key.f17,
-                    'f18': keyboard.Key.f18,
-                    'f19': keyboard.Key.f19,
-                    'f20': keyboard.Key.f20,
-                    'home': keyboard.Key.home,
-                    'insert': keyboard.Key.insert,
-                    'ins': keyboard.Key.insert,
-                    'left': keyboard.Key.left,
-                    'menu': keyboard.Key.menu,
-                    'numlock': keyboard.Key.num_lock,
-                    'pagedown': keyboard.Key.page_down,
-                    'pageup': keyboard.Key.page_up,
-                    'pause': keyboard.Key.pause,
-                    'break': keyboard.Key.pause,
-                    'prtscr': keyboard.Key.print_screen,
-                    'right': keyboard.Key.right,
-                    'scrolllock': keyboard.Key.scroll_lock,
-                    'scrlock': keyboard.Key.scroll_lock,
-                    'shift': keyboard.Key.shift,
-                    'lshift': keyboard.Key.shift_l,
-                    'rshift': keyboard.Key.shift_r,
-                    'space': keyboard.Key.space,
-                    'spc': keyboard.Key.space,
-                    'tab': keyboard.Key.tab,
-                    'up': keyboard.Key.up,
-                    'windows': keyboard.Key.cmd,
-                    'lwindows': keyboard.Key.cmd_l,
-                    'rwindows': keyboard.Key.cmd_r}
+        sub_keys = {'alt': 'alt',
+                    'lalt': 'altleft',
+                    'altleft': 'altleft',
+                    'ralt': 'altright',
+                    'altright': 'altright',
+                    'backspace': 'backspace',
+                    'capslock': 'capslock',
+                    'caps': 'capslock',
+                    'control': 'ctrl',
+                    'ctrl': 'ctrl',
+                    'lcrtl': 'ctrlleft',
+                    'ctrlleft': 'ctrlleft',
+                    'ctrlright': 'ctrlright',
+                    'delete': 'del',
+                    'del': 'del',
+                    'down': 'down',
+                    'end': 'end',
+                    'enter': 'enter',
+                    'return': 'enter',
+                    'esc': 'esc',
+                    'f1': 'f1',
+                    'f2': 'f2',
+                    'f3': 'f3',
+                    'f4': 'f4',
+                    'f5': 'f5',
+                    'f6': 'f6',
+                    'f7': 'f7',
+                    'f8': 'f8',
+                    'f9': 'f9',
+                    'f10': 'f10',
+                    'f11': 'f11',
+                    'f12': 'f12',
+                    'f13': 'f13',
+                    'f14': 'f14',
+                    'f15': 'f15',
+                    'f16': 'f16',
+                    'f17': 'f17',
+                    'f18': 'f18',
+                    'f19': 'f19',
+                    'f20': 'f20',
+                    'home': 'home',
+                    'insert': 'insert',
+                    'ins': 'insert',
+                    'left': 'left',
+                    'menu': 'home',
+                    'numlock': 'numlock',
+                    'num0': 'num0',
+                    'num1': 'num1',
+                    'num2': 'num2',
+                    'num3': 'num3',
+                    'num4': 'num4',
+                    'num5': 'num5',
+                    'num6': 'num6',
+                    'num7': 'num7',
+                    'num8': 'num8',
+                    'num9': 'num9',
+                    'pagedown': 'pagedown',
+                    'pgdown': 'pagedown',
+                    'pgdn': 'pagedown',
+                    'pageup': 'pageup',
+                    'pgup': 'pageup',
+                    'pause': 'pause',
+                    'break': 'pause',
+                    'printscreen': 'printscreen',
+                    'prntscrn': 'printscreen',
+                    'prtscr': 'printscreen',
+                    'right': 'right',
+                    'scrolllock': 'scrolllock',
+                    'scrlock': 'scrolllock',
+                    'shift': 'shift',
+                    'lshift': 'shiftleft',
+                    'shifteft': 'shiftleft',
+                    'rshift': 'shiftright',
+                    'shiftright': 'shiftright',
+                    'space': 'space',
+                    'spc': 'space',
+                    'tab': 'tab',
+                    'up': 'up',
+                    'windows': 'win',
+                    'win': 'win',
+                    'lwindows': 'winleft',
+                    'lwin': 'winleft',
+                    'rwindows': 'winright',
+                    'rwin': 'winright'}
 
         def ktype(message):
-            key_c.type(message)
+            pyautogui.typewrite(message)
 
         def click(key):
             key = key.replace(' ', '').lower()
@@ -620,8 +638,8 @@ class hardware_simulation():
                 key = shifted_keys[key]
             elif key in sub_keys:
                 key = sub_keys[key]
-            key_c.press(key)
-            key_c.release(key)
+            pyautogui.keyDown(key)
+            pyautogui.keyUp(key)
 
         def press(key):
             key = key.replace(' ', '').lower()
@@ -629,7 +647,7 @@ class hardware_simulation():
                 key = shifted_keys[key]
             elif key in sub_keys:
                 key = sub_keys[key]
-            key_c.press(key)
+            pyautogui.keyDown(key)
 
         def release(key):
             key = key.replace(' ', '').lower()
@@ -637,7 +655,7 @@ class hardware_simulation():
                 key = shifted_keys[key]
             elif key in sub_keys:
                 key = sub_keys[key]
-            key_c.release(key)
+            pyautogui.keyUp(key)
 
         def stroke(sequence):
             keys = []
@@ -668,9 +686,9 @@ class hardware_simulation():
                     sequence = sub_keys[sequence]
                 keys.append(sequence)
             for keyz in keys:
-                key_c.press(keyz)
+                pyautogui.keyDown(keyz)
             for keyz in keys:
-                key_c.release(keyz)
+                pyautogui.keyUp(keyz)
 
         def test_message(arguments):
             return ktype

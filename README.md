@@ -469,6 +469,7 @@ This is all the commands in their bulleted list.
       - `"insert"`, `"ins"`: Insert.
       - `"left"`: Left arrow.
       - `"menu"`: Menu (button that acts as basically a right click).
+      - `"num0"`, `"num1"`, ... `"num9"`: Numpad keys. Defined from 0 to 9.
       - `"numlock"`: Num lock.
       - `"pagedown`: Page down.
       - `"pageup"`: Page up.
