@@ -30,12 +30,13 @@ def output(text, file, output_file=None):
 
 # Actually runs the command iteself.
 class command_runner(Thread):
-    def __init__(self, commands, args, filename, output_file):
+    def __init__(self, commands, args, filename, output_file, command_prefix):
         Thread.__init__(self)
         self.commands = commands
         self.args = args
         self.filename = filename
         self.file = None
+        self.command_prefix = command_prefix
         if type(output_file) is str:
             try:
                 self.file = open(output_file, 'a')
@@ -64,6 +65,7 @@ class command_runner(Thread):
                 output('Args needs to be an array of equal length to the command array!', self.filename, self.file)
             else:
                 for command in range(len(self.commands)):
+                    self.args[command] = parse_args(self.args[command], self.command_prefix)
                     if type(self.commands[command]) is str:
                         output('{} is not a valid command.'.format(self.commands[command]), self.filename, self.file)
                         break
@@ -114,6 +116,7 @@ class command_runner(Thread):
             if type(self.commands) is str:
                 output('{} is not a valid command.'.format(self.commands), self.filename, self.file)
             else:
+                self.args = parse_args(self.args, self.command_prefix)
                 output('Running command {} with arguments {}.'.format(self.commands.__name__, ('"' + str(self.args) + '"') if type(self.args) is str else self.args), self.filename, self.file)
                 self.commands(self.file, self.filename, self.args)
         output('\n', self.filename, self.file)
@@ -425,6 +428,7 @@ class process_operations():
             except (psutil.NoSuchProcess, psutil.ZombieProcess, psutil.AccessDenied, TypeError, AttributeError):
                 pass
         return matching_processes
+
 
 # Opens a webpage.
 class web_commands():
@@ -1068,7 +1072,10 @@ class argument_functions():
                     if process_name.lower() in proc.name().lower():
                         globals()['return_value'] += 1
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                    pass'''
+                    pass''',
+
+        'random': '''def random():
+            globals()['return_value'] = random.random()'''
     }
 
     @staticmethod
@@ -1404,17 +1411,16 @@ if __name__ == '__main__':
                         args = current_file['args'].copy()
                     else:
                         args = current_file['args']
-                    args = parse_args(args, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix)
                 if not scheduled_to_run(current_file):
                     continue
                 output_file = file + '.output.txt'
                 if 'output file' in current_file:
                     output_file = current_file['output file']
                 if type(commands) is list:
-                    command_runner([(valid_commands[command.lower().replace('_', ' ')] if command.lower().replace('_', ' ') in valid_commands else command.lower().replace('_', ' ')) if type(command) is str else str(command) for command in commands], args, file, output_file)
+                    command_runner([(valid_commands[command.lower().replace('_', ' ')] if command.lower().replace('_', ' ') in valid_commands else command.lower().replace('_', ' ')) if type(command) is str else str(command) for command in commands], args, file, output_file, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix)
                     write_to_json_file(file, current_file)
                 else:
-                    command_runner(valid_commands[commands.lower().replace('_', ' ')] if commands.lower().replace('_', ' ') in valid_commands else commands.lower().replace('_', ' '), args, file, output_file)
+                    command_runner(valid_commands[commands.lower().replace('_', ' ')] if commands.lower().replace('_', ' ') in valid_commands else commands.lower().replace('_', ' '), args, file, output_file, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix)
                     write_to_json_file(file, current_file)
             except (KeyError, TypeError):
                 continue

@@ -69,6 +69,8 @@ There are two required keys for every config file that are pretty much the essen
 
 There are multiple optional keys that are useful for scheduling:
 
+- `"output file"`: The locale for the output file. If not inluded, it will just be a file with the same name plus ".output.txt" tacked on the end. If not set to a string, it the output file will not be generated.
+- `"args function prefix"`: The prefix for mid-argument functions and variables. Is set to `"?:>>"` by default.
 - `"run options"`: Has the run options for the command. It has a number of sub-keys, none of which are required.
   - `"year"`: The year(s) the command should run in.
   - `"month"`: The month(s) the command should run in. Runs from 1 to 12.
@@ -102,8 +104,6 @@ There are multiple optional keys that are useful for scheduling:
   - `"random chance"`: A float value that pretty much establishes a random chance the command will run at any given minute where it can otherwise.
     - 1 is 100% and 0.05 is 5%. You get the gist.
     - This is great for pranks! Keep in mind, though, that this program runs once a minute, so keep your chances low as to not set off any alarms.
-- `"output file"`: The locale for the output file. If not inluded, it will just be a file with the same name plus ".output.txt" tacked on the end. If not set to a string, it the output file will not be generated.
-- `"args function prefix"`: The prefix for mid-argument functions and variables. Is set to `"?:>>"` by default.
 
 ---
 
@@ -588,7 +588,8 @@ Arguments are pretty much the meat and potatoes of the program and actually have
 
 - General Use:
   - `"?:>>eval(thing)"`: Performs little operations embedded in the commands, such as addition, subtraction, division, etc.
-  - `"?:>>length(str)"`: Returns the length of a string/list/dict.
+  - `"?:>>length(thing)"`: Returns the length of a string/list/dict.
+  - `"?:>>random()"`: Returns a random float between 0 and 1.
 - Date/Time:
   - `"?:>>year(digits = 4)"`: Returns the current year. Put an int for the amount of digits, defaults to 4.
   - `"?:>>month(style = 0)"`: Returns the current month. Style set to 0 or 1 will return the numerical value (0 ensuring all months are two digits) and 2 and 3 will return the month's name (styled like January and Jan, respectively).
