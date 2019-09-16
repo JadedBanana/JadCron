@@ -61,7 +61,7 @@ class command_runner(Thread):
             skip_count = []
             until_skip_count = []
             skipped_last = False
-            if self.args is None or (not type(self.args) is list and not len(self.args) == len(self.commands)):
+            if not type(self.args) is list and (self.args is None or not len(self.args) == len(self.commands)):
                 output('Args needs to be an array of equal length to the command array!', self.filename, self.file)
             else:
                 for command in range(len(self.commands)):

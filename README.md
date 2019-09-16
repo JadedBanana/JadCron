@@ -366,7 +366,7 @@ This is all the commands in their bulleted list.
     }
     ```
 
-- `"kill process"`: Kills a process by its name or PID.<a name="suspend-file"></a>
+- `"kill process"`: Kills a process by its name or PID.<a name="kill-process"></a>
   - `"args"` for this one should be a list of ints/strings or an int/string.
     - Giving an integer will have it search for the matching PID.
     - Giving a string will have it search for any programs matching the name given.
@@ -380,7 +380,7 @@ This is all the commands in their bulleted list.
   }
   ```
 
-- `"suspend process"`: Suspends a process by its name or PID.<a name="suspend-file"></a>
+- `"suspend process"`: Suspends a process by its name or PID.<a name="suspend-process"></a>
   - `"args"` for this one should be a list of ints/strings or an int/string.
     - Giving an integer will have it search for the matching PID.
     - Giving a string will have it search for any programs matching the name given.
@@ -399,7 +399,7 @@ This is all the commands in their bulleted list.
   }
   ```
 
-- `"resume process"`: Resumes a suspended process by its name or PID.<a name="suspend-file"></a>
+- `"resume process"`: Resumes a suspended process by its name or PID.<a name="resume-process"></a>
   - `"args"` for this one should be a list of ints/strings or an int/string.
     - Giving an integer will have it search for the matching PID.
     - Giving a string will have it search for any programs matching the name given.
