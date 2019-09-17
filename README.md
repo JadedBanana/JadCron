@@ -67,10 +67,11 @@ There are two required keys for every config file that are pretty much the essen
 
 ## Optional Keys
 
-There are multiple optional keys that are useful for scheduling:
+There are multiple optional keys that are useful for scheduling and other miscellaneous options:
 
 - `"output file"`: The locale for the output file. If not inluded, it will just be a file with the same name plus ".output.txt" tacked on the end. If not set to a string, it the output file will not be generated.
 - `"args function prefix"`: The prefix for mid-argument functions and variables. Is set to `"?:>>"` by default.
+- `"repeats"`: The amount of times the program should repeat itself when finished. Is set to 0 by default.
 - `"run options"`: Has the run options for the command. It has a number of sub-keys, none of which are required.
   - `"year"`: The year(s) the command should run in.
   - `"month"`: The month(s) the command should run in. Runs from 1 to 12.

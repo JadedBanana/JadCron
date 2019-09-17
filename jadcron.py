@@ -29,13 +29,14 @@ def output(text, file, output_file=None):
 
 # Actually runs the command iteself.
 class command_runner(Thread):
-    def __init__(self, commands, args, filename, output_file, command_prefix):
+    def __init__(self, commands, args, filename, output_file, command_prefix, repeats):
         Thread.__init__(self)
         self.commands = commands
         self.args = args
         self.filename = filename
         self.file = None
         self.command_prefix = command_prefix
+        self.repeats = repeats if repeats else 0
         if type(output_file) is str:
             try:
                 self.file = open(output_file, 'a')
@@ -60,57 +61,62 @@ class command_runner(Thread):
             skip_count = []
             until_skip_count = []
             skipped_last = False
+            args_original = self.args.copy()
             if not type(self.args) is list and (self.args is None or not len(self.args) == len(self.commands)):
                 output('Args needs to be an array of equal length to the command array!', self.filename, self.file)
             else:
-                for command in range(len(self.commands)):
-                    self.args[command] = parse_args(self.args[command], self.command_prefix)
-                    if type(self.commands[command]) is str:
-                        output('{} is not a valid command.'.format(self.commands[command]), self.filename, self.file)
-                        break
-                    else:
-                        command_name = self.commands[command].__name__
-                        if len(skip_count) == 0:
-                            until_skip_count = []
+                for i in range(self.repeats + 1):
+                    self.args = args_original.copy()
+                    if i != 0:
+                        output('===={}{} repeat===='.format(i, 'th' if i%10 > 3 or i%10 == 0 else ('rd' if i == 3 else ('nd' if i == 2 else 'st'))), self.filename, self.file)
+                    for command in range(len(self.commands)):
+                        self.args[command] = parse_args(self.args[command], self.command_prefix)
+                        if type(self.commands[command]) is str:
+                            output('{} is not a valid command.'.format(self.commands[command]), self.filename, self.file)
+                            break
                         else:
-                            while len(until_skip_count) > 0 and until_skip_count[len(until_skip_count) - 1] == 0:
-                                until_skip_count = until_skip_count[:len(until_skip_count) - 1]
-                            while len(skip_count) > 0 and skip_count[len(skip_count) - 1] == 0:
-                                skip_count = skip_count[:len(skip_count) - 1]
+                            command_name = self.commands[command].__name__
                             if len(skip_count) == 0:
                                 until_skip_count = []
-                            elif len(skip_count) > len(until_skip_count):
-                                skip_count[len(skip_count) - 1] -= 1
-                                skipped_last = True
-                                if command_name == 'conditional_switch':
-                                    if not type(self.args[command]) is list or len(self.args[command]) != 3:
-                                        output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
-                                    elif not type(self.args[command][1]) is int:
-                                        output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
-                                    elif not type(self.args[command][2]) is int:
-                                        output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
-                                    else:
-                                        output('Skipping command {} and the {} commands beneath it.'.format(command_name, self.args[command][1] + self.args[command][2]), self.filename, self.file)
-                                        skip_count[len(skip_count) - 1] += self.args[command][1] + self.args[command][2]
-                                else:
-                                    output('Skipping command {}.'.format(command_name), self.filename, self.file)
-                                continue
                             else:
-                                until_skip_count[len(until_skip_count) - 1]-= 1
-                        if skipped_last:
-                            skipped_last = False
-                            output('', self.filename, self.file)
-                        output('Running command {} with arguments {}.'.format(command_name, self.args[command]), self.filename, self.file)
-                        if 'conditional' in command_name:
-                            skips, until_skips = self.commands[command](self.file, self.filename, self.args[command])
-                            skip_count.append(skips)
-                            until_skip_count.append(until_skips)
-                            output('', self.filename, self.file)
-                        else:
-                            self.commands[command](self.file, self.filename, self.args[command])
-                            output('', self.filename, self.file)
-                if skipped_last:
-                    output('', self.filename, self.file)
+                                while len(until_skip_count) > 0 and until_skip_count[len(until_skip_count) - 1] == 0:
+                                    until_skip_count = until_skip_count[:len(until_skip_count) - 1]
+                                while len(skip_count) > 0 and skip_count[len(skip_count) - 1] == 0:
+                                    skip_count = skip_count[:len(skip_count) - 1]
+                                if len(skip_count) == 0:
+                                    until_skip_count = []
+                                elif len(skip_count) > len(until_skip_count):
+                                    skip_count[len(skip_count) - 1] -= 1
+                                    skipped_last = True
+                                    if command_name == 'conditional_switch':
+                                        if not type(self.args[command]) is list or len(self.args[command]) != 3:
+                                            output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
+                                        elif not type(self.args[command][1]) is int:
+                                            output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
+                                        elif not type(self.args[command][2]) is int:
+                                            output('Skipping command {}. (Would skip commands beneath it, too, but its arguments are invalid!)'.format(command_name), self.filename, self.file)
+                                        else:
+                                            output('Skipping command {} and the {} commands beneath it.'.format(command_name, self.args[command][1] + self.args[command][2]), self.filename, self.file)
+                                            skip_count[len(skip_count) - 1] += self.args[command][1] + self.args[command][2]
+                                    else:
+                                        output('Skipping command {}.'.format(command_name), self.filename, self.file)
+                                    continue
+                                else:
+                                    until_skip_count[len(until_skip_count) - 1] -= 1
+                            if skipped_last:
+                                skipped_last = False
+                                output('', self.filename, self.file)
+                            output('Running command {} with arguments {}.'.format(command_name, self.args[command]), self.filename, self.file)
+                            if 'conditional' in command_name:
+                                skips, until_skips = self.commands[command](self.file, self.filename, self.args[command])
+                                skip_count.append(skips)
+                                until_skip_count.append(until_skips)
+                                output('', self.filename, self.file)
+                            else:
+                                self.commands[command](self.file, self.filename, self.args[command])
+                                output('', self.filename, self.file)
+                    if skipped_last:
+                        output('', self.filename, self.file)
         else:
             if type(self.commands) is str:
                 output('{} is not a valid command.'.format(self.commands), self.filename, self.file)
@@ -1036,7 +1042,7 @@ class argument_functions():
             for proc in psutil.process_iter():
                 try:
                     if process_name.lower() in proc.name().lower():
-                        globals()['return_value'] = proc.isRunning()
+                        globals()['return_value'] = proc.is_running()
                         return
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     pass''',
@@ -1050,7 +1056,7 @@ class argument_functions():
             for proc in psutil.process_iter():
                 try:
                     if pid == proc.pid:
-                        globals()['return_value'] = proc.isRunning()
+                        globals()['return_value'] = proc.is_running()
                         return
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     pass''',
@@ -1093,7 +1099,10 @@ class argument_functions():
                     pass''',
 
         'random': '''def random():
-            globals()['return_value'] = random.random()'''
+            globals()['return_value'] = random.random()''',
+
+        'mousepos': '''def mousepos():
+            globals()['return_value'] = pyautogui.position()'''
     }
 
     @staticmethod
@@ -1434,11 +1443,18 @@ if __name__ == '__main__':
                 output_file = file + '.output.txt'
                 if 'output file' in current_file:
                     output_file = current_file['output file']
+                if 'repeats' in current_file:
+                    try:
+                        repeats = int(current_file['repeats'])
+                    except ValueError:
+                        repeats = 0
+                else:
+                    repeats = 0
                 if type(commands) is list:
-                    command_runner([(valid_commands[command.lower().replace('_', ' ')] if command.lower().replace('_', ' ') in valid_commands else command.lower().replace('_', ' ')) if type(command) is str else str(command) for command in commands], args, file, output_file, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix)
+                    command_runner([(valid_commands[command.lower().replace('_', ' ')] if command.lower().replace('_', ' ') in valid_commands else command.lower().replace('_', ' ')) if type(command) is str else str(command) for command in commands], args, file, output_file, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix, repeats)
                     write_to_json_file(file, current_file)
                 else:
-                    command_runner(valid_commands[commands.lower().replace('_', ' ')] if commands.lower().replace('_', ' ') in valid_commands else commands.lower().replace('_', ' '), args, file, output_file, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix)
+                    command_runner(valid_commands[commands.lower().replace('_', ' ')] if commands.lower().replace('_', ' ') in valid_commands else commands.lower().replace('_', ' '), args, file, output_file, current_file['args function prefix'] if 'args function prefix' in current_file else argument_functions.function_prefix, repeats)
                     write_to_json_file(file, current_file)
             except (KeyError, TypeError):
                 continue
