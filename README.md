@@ -143,6 +143,7 @@ These kays are really only used by the program and you don't really need to both
   - [`"simulate mouse"`](#simulate-mouse)
 - Misc.:
   - [`"command prompt"`](#command-prompt)
+  - [`"popup"`](#popup)
   - [`"do nothing"`](#do-nothing)
 
 This is all the commands in their bulleted list.
@@ -374,12 +375,12 @@ This is all the commands in their bulleted list.
   - If the process does not exist, nothing will happen.
   - Example:
   
-  ```json
-  {
-      "command": "kill process",
-      "args": "iexplore.exe"
-  }
-  ```
+    ```json
+    {
+        "command": "kill process",
+        "args": "iexplore.exe"
+    }
+    ```
 
 - `"suspend process"`: Suspends a process by its name or PID.<a name="suspend-process"></a>
   - `"args"` for this one should be a list of ints/strings or an int/string.
@@ -388,17 +389,17 @@ This is all the commands in their bulleted list.
   - If the process does not exist, nothing will happen.
   - Example:
   
-  ```json
-  {
-      "command": "suspend process",
-      "args": "minecraft.exe",
-      "run options": {
-          "weekday": "0-4",
-          "hour": 23,
-          "minute": 30
-      }
-  }
-  ```
+    ```json
+    {
+        "command": "suspend process",
+        "args": "minecraft.exe",
+        "run options": {
+            "weekday": "0-4",
+            "hour": 23,
+            "minute": 30
+        }
+    }
+    ```
 
 - `"resume process"`: Resumes a suspended process by its name or PID.<a name="resume-process"></a>
   - `"args"` for this one should be a list of ints/strings or an int/string.
@@ -407,17 +408,17 @@ This is all the commands in their bulleted list.
   - If the process does not exist, nothing will happen.
   - Example:
   
-  ```json
-  {
-      "command": "resume process",
-      "args": "minecraft.exe",
-      "run options": {
-          "weekday": "1-5",
-          "hour": 10,
-          "minute": 15
-      }
-  }
-  ```
+    ```json
+    {
+        "command": "resume process",
+        "args": "minecraft.exe",
+        "run options": {
+            "weekday": "1-5",
+            "hour": 10,
+            "minute": 15
+        }
+    }
+    ```
 
 - `"open webpage"`: Opens a webpage.<a name="open-webpage"></a>
   - `"args"` for this one should be either a string representing the URL of a webpage or a list of strings representing webpages.
@@ -559,6 +560,29 @@ This is all the commands in their bulleted list.
     }
     ```
     
+- `"popup"`: Makes a popup window.
+  - `"args"` for this one should be a list of strings. None are required,
+    - The first value is the text that appears in the popup. This is blank by default.
+    - The second value is the title of the popup. This is "Error" by default.
+    - The third value is the text on the button that appears at the bottom. This is "OK" by default.
+  - When a popup window is made, the program will not continue until the it has been closed.
+  - Example:
+  
+    ```json
+    {
+        "command": "popup",
+        "args": [
+            "Don't forget your homework, dude.",
+            "Reminder"
+        ],
+        "run options": {
+            "hour": 20,
+            "minute": 0,
+            "weekday": "0-4"
+        }
+    }
+    ```
+    
 - `"do nothing"`: Does nothing. Literally, that's it.<a name="do-nothing"></a>
   - `"args"` can be literally anything. Args are not needed to do nothing.
   - This is more a debug command than anything. You're welcome to use it, but it literally does nothing.
@@ -614,3 +638,6 @@ Arguments are pretty much the meat and potatoes of the program and actually have
   - `"?:>>pid(process_name)"`: Returns the first PID of the process with the given PID. Returns None if not found.
   - `"?:>>processname(pid)"`: Returns the name of the process with the given PID. Returns None if not found.
   - `"?:>>countinstances(process_name)"`: Returns an int value representing how many instances the program is running.
+- User Input:
+  - `"?:>>choice(text = '', title = 'Confirm', buttons = ['OK', 'Cancel'])"`: Creates a popup with buttons on it. Returns the text of the button pressed.
+  - `"?:>>input(text = '', title = 'Input', default = '')"`: Creates a window for the user to input text. Returns the text if entered, None if canceled.

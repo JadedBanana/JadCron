@@ -12,7 +12,7 @@ from ast import literal_eval
 from threading import Thread
 
 __author__ = 'Jade Godwin'
-__version__ = '0.2.2'
+__version__ = '0.2.8'
 
 today = None
 
@@ -106,7 +106,7 @@ class command_runner(Thread):
                             if skipped_last:
                                 skipped_last = False
                                 output('', self.filename, self.file)
-                            output('Running command {} with arguments {}.'.format(command_name, self.args[command]), self.filename, self.file)
+                            output('Running command {0} with arguments {2}{1}{2}.'.format(command_name, self.args[command], '"' if type(self.args[command]) is str else ''), self.filename, self.file)
                             if 'conditional' in command_name:
                                 skips, until_skips = self.commands[command](self.file, self.filename, self.args[command])
                                 skip_count.append(skips)
@@ -129,66 +129,65 @@ class command_runner(Thread):
             self.file.close()
 
 
-# File operations.
-class file_operations():
+class general_use():
 
     @staticmethod
-    def copy_file(file, filename, args):
-
-        def do_the_copy_thing(src, dst, keep_attributes=True):
-            if not type(src) is str:
-                output('copy file: Source file {} is not a string! Cannot copy file.'.format(str(src)), filename, file)
-                return
-            if not os.path.isfile(src):
-                output('copy file: Source file {} does not exist! Cannot copy file.'.format(str(src)), filename, file)
-                return
-            if type(dst) is list:
-                for dest in dst:
-                    do_the_copy_thing(src, dest, keep_attributes)
-            if not type(dst) is str:
-                output('copy file: Destination file/folder {} is not a string! Cannot copy files'.format(str(dst)),
-                       filename, file)
-                return 0
-            if os.path.isdir(dst) and os.path.normpath(os.path.dirname(src)) == os.path.normpath(dst):
-                output(
-                    'copy file: Source file {} is already in the destination folder! Copying would be redundant.'.format(
-                        src), filename, file)
-            if os.path.normpath(src) == os.path.normpath(dst):
-                output(
-                    'copy file: Source file and destination file are the same ({})! Copying would be redundant.'.format(
-                        os.path.normpath(dst)), filename, file)
-            src = os.path.normpath(src)
-            dst = os.path.normpath(dst)
-            copy = shutil.copy2 if keep_attributes else shutil.copy
-            try:
-                if not os.path.exists(dst):
-                    dest = dst
-                    if '.' in os.path.basename(dst):
-                        dest = os.path.dirname(dst)
-                    while not (os.path.isdir(dest) or os.path.dest == ''):
-                        try:
-                            os.mkdir(dest)
-                        except FileNotFoundError:
-                            dst_temp = os.path.dirname(dest)
-                            while not (os.path.isdir(dst_temp) or dst_temp == ''):
-                                try:
-                                    os.mkdir(dst_temp)
-                                except FileNotFoundError:
-                                    dst_temp = os.path.dirname(dst_temp)
-                copy(src, dst)
-                output('copy file: Copied {} to {}.'.format(src, dst), filename, file)
-            except PermissionError:
-                output('copy file: Got permission error while copying from {} to {}!'.format(src, dst), filename, file)
-                return 0
-
+    def sleep(file, filename, args):
         if not args:
-            return output('copy file: Command cannot run without arguments!', filename, file)
-        if not type(args) is list or len(args) < 2:
-            return output('copy file: Args is invalid! Must be a list of at least length 2!', filename, file)
-        elif len(args) > 2:
-            do_the_copy_thing(args[0], args[1], args[2])
+            return output('sleep: Command cannot run without arguments!', filename, file)
+        if type(args) is int or type(args) is float:
+            time.sleep(args)
+            output('sleep: Slept for {} seconds.'.format(args), filename, file)
+        elif file:
+            output('sleep: Could not sleep as the argument {} was not a valid number!'.format(args), filename, file)
+        return
+
+    @staticmethod
+    def conditional_end(file, filename, args):
+        if args:
+            output('conditional end: {} is equivalent to True! Ending the program:'.format(args), filename, file)
+            return -1, 0
         else:
-            do_the_copy_thing(args[0], args[1])
+            output('conditional end: {} is equivalent to False. Continuing as normal.'.format(args), filename, file)
+            return 0, 0
+
+    @staticmethod
+    def conditional_skip(file, filename, args):
+        if not type(args) is list or len(args) != 2:
+            output('conditional skip: Args is invalid! Must be a list of length 2!', filename, file)
+            return 0, 0
+        if not type(args[1]) is int:
+            output('conditional skip: Args is invalid! The second value of the list needs to be an integer!', filename, file)
+            return 0, 0
+        if args[0]:
+            output('conditional skip: {} is equivalent to True! Skipping {} commands:'.format(args[0], args[1]), filename, file)
+            return args[1], 0
+        else:
+            output('conditional skip: {} is equivalent to False. Continuing as normal.'.format(args[0]), filename, file)
+            return 0, 0
+
+    @staticmethod
+    def conditional_switch(file, filename, args):
+        if not type(args) is list or (len(args) > 3 or len(args) < 2):
+            output('conditional switch: Args is invalid! Must be a list of length 3!', filename, file)
+            return 0, 0
+        if len(args) < 3:
+            args = args.copy().append(0)
+        if not type(args[1]) is int:
+            output('conditional switch: Args is invalid! The second value of the list needs to be an integer!', filename, file)
+            return 0, 0
+        if len(args) == 3 and not type(args[2]) is int:
+            output('conditional switch: Args is invalid! The third value of the list needs to be an integer!', filename, file)
+            return 0, 0
+        if args[0]:
+            output('conditional switch: {} is equivalent to True! Doing {} commands then skipping {}.'.format(args[0], args[1], args[2]), filename, file)
+            return args[2], args[1]
+        else:
+            output('conditional switch: {} is equivalent to False. Skipping {} commands.'.format(args[0], args[1]), filename, file)
+            return args[1], 0
+
+# File operations.
+class file_operations():
 
     @staticmethod
     def create_backup(file, filename, args):
@@ -283,6 +282,64 @@ class file_operations():
         else:
             files_copied = do_the_copy_thing(args[0], args[1])
         output('create backup: {} total files copied from {} to {}.'.format(files_copied, args[0], args[1]), filename, file)
+
+    @staticmethod
+    def copy_file(file, filename, args):
+
+        def do_the_copy_thing(src, dst, keep_attributes=True):
+            if not type(src) is str:
+                output('copy file: Source file {} is not a string! Cannot copy file.'.format(str(src)), filename, file)
+                return
+            if not os.path.isfile(src):
+                output('copy file: Source file {} does not exist! Cannot copy file.'.format(str(src)), filename, file)
+                return
+            if type(dst) is list:
+                for dest in dst:
+                    do_the_copy_thing(src, dest, keep_attributes)
+            if not type(dst) is str:
+                output('copy file: Destination file/folder {} is not a string! Cannot copy files'.format(str(dst)),
+                       filename, file)
+                return 0
+            if os.path.isdir(dst) and os.path.normpath(os.path.dirname(src)) == os.path.normpath(dst):
+                output(
+                    'copy file: Source file {} is already in the destination folder! Copying would be redundant.'.format(
+                        src), filename, file)
+            if os.path.normpath(src) == os.path.normpath(dst):
+                output(
+                    'copy file: Source file and destination file are the same ({})! Copying would be redundant.'.format(
+                        os.path.normpath(dst)), filename, file)
+            src = os.path.normpath(src)
+            dst = os.path.normpath(dst)
+            copy = shutil.copy2 if keep_attributes else shutil.copy
+            try:
+                if not os.path.exists(dst):
+                    dest = dst
+                    if '.' in os.path.basename(dst):
+                        dest = os.path.dirname(dst)
+                    while not (os.path.isdir(dest) or os.path.dest == ''):
+                        try:
+                            os.mkdir(dest)
+                        except FileNotFoundError:
+                            dst_temp = os.path.dirname(dest)
+                            while not (os.path.isdir(dst_temp) or dst_temp == ''):
+                                try:
+                                    os.mkdir(dst_temp)
+                                except FileNotFoundError:
+                                    dst_temp = os.path.dirname(dst_temp)
+                copy(src, dst)
+                output('copy file: Copied {} to {}.'.format(src, dst), filename, file)
+            except PermissionError:
+                output('copy file: Got permission error while copying from {} to {}!'.format(src, dst), filename, file)
+                return 0
+
+        if not args:
+            return output('copy file: Command cannot run without arguments!', filename, file)
+        if not type(args) is list or len(args) < 2:
+            return output('copy file: Args is invalid! Must be a list of at least length 2!', filename, file)
+        elif len(args) > 2:
+            do_the_copy_thing(args[0], args[1], args[2])
+        else:
+            do_the_copy_thing(args[0], args[1])
 
     @staticmethod
     def append_file(file, filename, args, overwrite = False):
@@ -788,61 +845,6 @@ class hardware_simulation():
 class misc_commands():
 
     @staticmethod
-    def sleep(file, filename, args):
-        if not args:
-            return output('sleep: Command cannot run without arguments!', filename, file)
-        if type(args) is int or type(args) is float:
-            time.sleep(args)
-            output('sleep: Slept for {} seconds.'.format(args), filename, file)
-        elif file:
-            output('sleep: Could not sleep as the argument {} was not a valid number!'.format(args), filename, file)
-        return
-
-    @staticmethod
-    def conditional_end(file, filename, args):
-        if args:
-            output('conditional end: {} is equivalent to True! Ending the program:'.format(args), filename, file)
-            return -1, 0
-        else:
-            output('conditional end: {} is equivalent to False. Continuing as normal.'.format(args), filename, file)
-            return 0, 0
-
-    @staticmethod
-    def conditional_skip(file, filename, args):
-        if not type(args) is list or len(args) != 2:
-            output('conditional skip: Args is invalid! Must be a list of length 2!', filename, file)
-            return 0, 0
-        if not type(args[1]) is int:
-            output('conditional skip: Args is invalid! The second value of the list needs to be an integer!', filename, file)
-            return 0, 0
-        if args[0]:
-            output('conditional skip: {} is equivalent to True! Skipping {} commands:'.format(args[0], args[1]), filename, file)
-            return args[1], 0
-        else:
-            output('conditional skip: {} is equivalent to False. Continuing as normal.'.format(args[0]), filename, file)
-            return 0, 0
-
-    @staticmethod
-    def conditional_switch(file, filename, args):
-        if not type(args) is list or (len(args) > 3 or len(args) < 2):
-            output('conditional switch: Args is invalid! Must be a list of length 3!', filename, file)
-            return 0, 0
-        if len(args) < 3:
-            args = args.copy().append(0)
-        if not type(args[1]) is int:
-            output('conditional switch: Args is invalid! The second value of the list needs to be an integer!', filename, file)
-            return 0, 0
-        if len(args) == 3 and not type(args[2]) is int:
-            output('conditional switch: Args is invalid! The third value of the list needs to be an integer!', filename, file)
-            return 0, 0
-        if args[0]:
-            output('conditional switch: {} is equivalent to True! Doing {} commands then skipping {}.'.format(args[0], args[1], args[2]), filename, file)
-            return args[2], args[1]
-        else:
-            output('conditional switch: {} is equivalent to False. Skipping {} commands.'.format(args[0], args[1]), filename, file)
-            return args[1], 0
-
-    @staticmethod
     def command_prompt(file, filename, args):
         if type(args) is list:
             for arg in args:
@@ -855,6 +857,22 @@ class misc_commands():
             while reply.endswith('\n'):
                 reply = reply[:len(reply) - 1]
             output('command prompt: ' + str(args) + ': ' + reply, filename, file)
+
+    @staticmethod
+    def popup(file, filename, args):
+        if type(args) is list:
+            if len(args) >= 3:
+                pyautogui.alert(str(args[0]), str(args[1]), str(args[2]))
+            elif len(args) == 2:
+                pyautogui.alert(str(args[0]), str(args[1]))
+            elif len(args) == 1:
+                pyautogui.alert(str(args[0]))
+            else:
+                pyautogui.alert(str(args))
+        elif args != None:
+            pyautogui.alert(str(args))
+        else:
+            pyautogui.alert()
 
     @staticmethod
     def do_nothing(file, filename, args):
@@ -1101,8 +1119,15 @@ class argument_functions():
         'random': '''def random():
             globals()['return_value'] = random.random()''',
 
-        'mousepos': '''def mousepos():
-            globals()['return_value'] = pyautogui.position()'''
+        'choice': '''def choice(text='', title='Confirm', buttons=['OK', 'Cancel']):
+            if not type(buttons) is list:
+                buttons = [buttons]
+            for i in range(len(buttons)):
+                buttons[i] = str(buttons[i])
+            globals()['return_value'] = pyautogui.confirm(str(text), str(title), buttons)''',
+
+        'input': '''def input(text = '', title = 'Input', default = ''):
+            globals()['return_value'] = pyautogui.prompt(str(text), str(title), str(default))'''
     }
 
     @staticmethod
@@ -1401,23 +1426,24 @@ def write_to_json_file(current_file, file_data):
 # Main part of the program right here.
 if __name__ == '__main__':
     directory = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-    valid_commands = {'copy file': file_operations.copy_file,
+    valid_commands = {'sleep': general_use.sleep,
+                      'conditional end': general_use.conditional_end,
+                      'conditional skip': general_use.conditional_skip,
+                      'conditional switch': general_use.conditional_switch,
                       'create backup': file_operations.create_backup,
+                      'copy file': file_operations.copy_file,
                       'append file': file_operations.append_file,
                       'overwrite file': file_operations.overwrite_file,
                       'delete file': file_operations.delete_file,
+                      'kill process': process_operations.kill_process,
+                      'suspend process': process_operations.suspend_process,
+                      'resume process': process_operations.resume_process,
                       'open webpage': web_commands.open_webpage,
                       'simulate keyboard': hardware_simulation.simulate_keyboard,
                       'simulate mouse': hardware_simulation.simulate_mouse,
-                      'sleep': misc_commands.sleep,
                       'command prompt': misc_commands.command_prompt,
-                      'do nothing': misc_commands.do_nothing,
-                      'conditional end': misc_commands.conditional_end,
-                      'conditional skip': misc_commands.conditional_skip,
-                      'conditional switch': misc_commands.conditional_switch,
-                      'kill process': process_operations.kill_process,
-                      'suspend process': process_operations.suspend_process,
-                      'resume process': process_operations.resume_process}
+                      'popup': misc_commands.popup,
+                      'do nothing': misc_commands.do_nothing}
     last_minute = -1
 
     while True:
