@@ -1,2 +1,2 @@
-"venv\scripts\python.exe" "jadcron.py"
+"src\venv\scripts\python.exe" "src\jadmain.py"
 pause

@@ -8,7 +8,7 @@ JadCron is a python-based task scheduler made by Jade Godwin for Windows. How it
 
 JadCron is almost ready to go straight out the box, but there is one important thing you have to do first:
 
-1. Go into the "venv" folder and open the file "pyvenv.cfg".
+1. Go into the "src" folder then the "venv" folder and open the file "pyvenv.cfg".
 1. Change the `home` parameter to your python directory (this requires Python to be installed on your computer, obviously).
 
 And you're done! Now it's ready to run and you can do just that by running either `jadcron.bat` or `jadcron_background.vbs` (they are the same, but `jadcron.bat` shows the console while running). However, if you want the best experience, it's best used when it is run on startup in the background. There are some additional steps to complete before this happens:
@@ -121,22 +121,22 @@ These kays are really only used by the program and you don't really need to both
 
 ## Valid Commands
 
-- General Use:
+- General:
   - [`"sleep"`](#sleep)
   - [`"conditional end"`](#conditional-end)
   - [`"conditional skip"`](#conditional-skip)
   - [`"conditional switch"`](#conditional-switch)
-- File Operations:
+- Files:
   - [`"create backup"`](#create-backup)
   - [`"copy file"`](#copy-file)
   - [`"append file"`](#append-file)
   - [`"overwrite file"`](#overwrite-file)
   - [`"delete file"`](#delete-file)
-- Process Operations:
+- Processes:
   - [`"kill process"`](#kill-process)
   - [`"suspend process"`](#suspend-process)
   - [`"resume process"`](#resume-process)
-- Webpage Operations:
+- Webpages:
   - [`"open webpage`](#open-webpage)
 - Hardware Simulation:
   - [`"simulate keyboard"`](#simulate-keyboard)
@@ -641,3 +641,4 @@ Arguments are pretty much the meat and potatoes of the program and actually have
 - User Input:
   - `"?:>>choice(text = '', title = 'Confirm', buttons = ['OK', 'Cancel'])"`: Creates a popup with buttons on it. Returns the text of the button pressed.
   - `"?:>>input(text = '', title = 'Input', default = '')"`: Creates a window for the user to input text. Returns the text if entered, None if canceled.
+  - `"?:>>password(text = '', title = 'Password', default = '', mask = '*')"`: Creates a window for the user to input text but each character is masked with `mask`. Returns the text if entered, None if canceled.
