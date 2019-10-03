@@ -365,7 +365,37 @@ class argument_functions():
             globals()['return_value'] = pyautogui.prompt(str(text), str(title), str(default))''',
 
         'password': '''def password(text = '', title = 'Password', default = '', mask = '*'):
-            globals()['return_value'] = pyautogui.password(str(text), str(title), str(default), str(mask))'''
+            globals()['return_value'] = pyautogui.password(str(text), str(title), str(default), str(mask))''',
+
+        'pixel': '''def pixel(x, y):
+            try:
+                globals()['return_value'] = list(pyautogui.pixel(int(x), int(y)))
+            except (TypeError, OSError):
+                globals()['return_value'] = None''',
+
+        'colormatches': '''def colormatches(x, y, r, g, b, tolerance = 0):
+            try:
+                globals()['return_value'] = pyautogui.pixelMatchesColor(int(x), int(y), (r, g, b), tolerance)
+            except (TypeError, OSError):
+                globals()['return_value'] = False''',
+
+        'colormatches2': '''def colormatches2(x, y, rgb, tolerance = 0):
+            try:
+                globals()['return_value'] = pyautogui.pixelMatchesColor(int(x), int(y), tuple(rgb), int(tolerance))
+            except (TypeError, OSError):
+                globals()['return_value'] = False''',
+
+        'colormatches3': '''def colormatches3(x1, y1, x2, y2, tolerance = 0):
+            rgb = None
+            try:
+                rgb = pyautogui.pixel(int(x1), int(y1))
+            except (TypeError, OSError):
+                globals()['return_value'] = False
+                return
+            try:
+                globals()['return_value'] = pyautogui.pixelMatchesColor(int(x2), int(y2), rgb, int(tolerance))
+            except (TypeError, OSError):
+                globals()['return_value'] = False'''
     }
 
     @staticmethod

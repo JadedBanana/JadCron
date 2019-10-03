@@ -638,6 +638,11 @@ Arguments are pretty much the meat and potatoes of the program and actually have
   - `"?:>>pid(process_name)"`: Returns the first PID of the process with the given PID. Returns None if not found.
   - `"?:>>processname(pid)"`: Returns the name of the process with the given PID. Returns None if not found.
   - `"?:>>countinstances(process_name)"`: Returns an int value representing how many instances the program is running.
+- Graphical (Most only work on primary screen, so dual monitor users beware!):
+  - `"?:>>pixel(x, y)"`: Returns the color at `(x, y)` in the form of a list `(r, g, b)`. Will return pure black if `(x, y)` is outside the screen area.
+  - `"?:>>colormatches(x, y, r, g, b, tolerance = 0)"`: Returns a boolean value after seeing if the pixel at `(x, y)` is equal to the color expressed by `(r, g, b)`.
+  - `"?:>>colormatches2(x, y, rgb_list, tolerance = 0)"`: Returns a boolean value after seeing if the pixel at `(x, y)` is equal to the color expressed by `rgb_list`.
+  - `"?:>>colormatches3(x1, y1, x2, y2, tolerance = 0"`: Returns a boolean value after seeing if the pixel at `(x1, y1)` is equal to the pixel at `(x2, y2)`.
 - User Input:
   - `"?:>>choice(text = '', title = 'Confirm', buttons = ['OK', 'Cancel'])"`: Creates a popup with buttons on it. Returns the text of the button pressed.
   - `"?:>>input(text = '', title = 'Input', default = '')"`: Creates a window for the user to input text. Returns the text if entered, None if canceled.
